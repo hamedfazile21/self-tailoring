@@ -15,6 +15,7 @@ let User = class User {
     id;
     name;
     email;
+    password;
     created_at;
     updated_at;
 };
@@ -31,6 +32,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', length: 255, unique: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
+    __metadata("design:type", String)
+], User.prototype, "password", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)
