@@ -8,7 +8,7 @@ export declare class UsersService {
     private allowFields;
     private hashPassword;
     create(createUserDto: CreateUserDto): Promise<({
-        password: any;
+        password: string;
         id: number;
         name: string;
         email: string;
@@ -19,4 +19,5 @@ export declare class UsersService {
     findOne(id: number): Promise<User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<User | undefined>;
     remove(id: number): Promise<string[]>;
+    findOneByEmail(email: string): Promise<User | null>;
 }

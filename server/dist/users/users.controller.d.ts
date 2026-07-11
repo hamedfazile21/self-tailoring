@@ -5,7 +5,7 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     create(createUserDto: CreateUserDto): Promise<({
-        password: any;
+        password: string;
         id: number;
         name: string;
         email: string;

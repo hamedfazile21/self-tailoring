@@ -23,16 +23,23 @@ let CustomersService = class CustomersService {
         this.repository = repository;
     }
     async create(createCustomerDto) {
-        const customer = this.repository.create(createCustomerDto);
+        const customer = this.repository.create({
+            ...createCustomerDto,
+        });
         return this.repository.save(customer);
     }
     async findAll() {
         return this.repository.find();
     }
     async findOne(id) {
-        const customer = await this.repository.findOneBy({ id });
+        const customer = await this.repository.findOne({
+            where: { id: id },
+        });
         if (!customer)
-            throw new common_1.NotFoundException(`Customer #${id} not found`);
+            throw new common_1.NotFoundException({
+                status: common_1.HttpStatus.NOT_FOUND,
+                data: ['Customer Not Found'],
+            });
         return customer;
     }
     async update(id, updateCustomerDto) {
@@ -43,7 +50,10 @@ let CustomersService = class CustomersService {
     async remove(id) {
         const deleteRow = await this.repository.delete({ id });
         if (deleteRow.affected === 0) {
-            throw new common_1.NotFoundException('customer Not Found');
+            throw new common_1.NotFoundException({
+                status: common_1.HttpStatus.NOT_FOUND,
+                data: ['Customer Not Found'],
+            });
         }
         return ['customer deleted successfully'];
     }

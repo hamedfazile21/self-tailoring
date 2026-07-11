@@ -16,6 +16,9 @@ const customers_module_1 = require("./customers/customers.module");
 const customer_entity_1 = require("./customers/entities/customer.entity");
 const users_module_1 = require("./users/users.module");
 const user_entity_1 = require("./users/entities/user.entity");
+const auth_module_1 = require("./auth/auth.module");
+const measurements_module_1 = require("./measurements/measurements.module");
+const measurement_entity_1 = require("./measurements/entities/measurement.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -36,7 +39,7 @@ exports.AppModule = AppModule = __decorate([
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
                     socketPath: '/opt/lampp/var/mysql/mysql.sock',
-                    entities: [customer_entity_1.Customer, user_entity_1.User],
+                    entities: [customer_entity_1.Customer, user_entity_1.User, measurement_entity_1.Measurement],
                     autoLoadEntities: true,
                     synchronize: true,
                     charset: 'utf8mb4_unicode_ci',
@@ -44,6 +47,8 @@ exports.AppModule = AppModule = __decorate([
             }),
             customers_module_1.CustomersModule,
             users_module_1.UsersModule,
+            auth_module_1.AuthModule,
+            measurements_module_1.MeasurementsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

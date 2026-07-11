@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const customers_service_1 = require("./customers.service");
 const create_customer_dto_1 = require("./dto/create-customer.dto");
 const update_customer_dto_1 = require("./dto/update-customer.dto");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const user_decorator_1 = require("../auth/decorator/user.decorator");
 let CustomersController = class CustomersController {
     customersService;
     constructor(customersService) {
@@ -25,7 +27,7 @@ let CustomersController = class CustomersController {
     create(createCustomerDto) {
         return this.customersService.create(createCustomerDto);
     }
-    findAll() {
+    findAll(user) {
         return this.customersService.findAll();
     }
     findOne(id) {
@@ -40,6 +42,7 @@ let CustomersController = class CustomersController {
 };
 exports.CustomersController = CustomersController;
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -47,12 +50,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "create", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)(),
+    __param(0, (0, user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('show/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -60,6 +66,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "findOne", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Patch)('update/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
@@ -68,6 +75,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "update", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Delete)('delete/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),

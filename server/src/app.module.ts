@@ -7,6 +7,9 @@ import { CustomersModule } from './customers/customers.module';
 import { Customer } from './customers/entities/customer.entity';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { MeasurementsModule } from './measurements/measurements.module';
+import { Measurement } from './measurements/entities/measurement.entity';
 
 @Module({
   imports: [
@@ -27,7 +30,7 @@ import { User } from './users/entities/user.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         socketPath: '/opt/lampp/var/mysql/mysql.sock', // In Linux i should use this path to know xammp
-        entities: [Customer , User],
+        entities: [Customer , User , Measurement],
         autoLoadEntities: true,
         synchronize: true,
         charset: 'utf8mb4_unicode_ci', // to support other language like farsi
@@ -38,6 +41,10 @@ import { User } from './users/entities/user.entity';
     CustomersModule,
 
     UsersModule,
+
+    AuthModule,
+
+    MeasurementsModule,
   ],
   // imports: [CustomersModule],
   controllers: [AppController],

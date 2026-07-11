@@ -124,4 +124,9 @@ export class UsersService {
       throw new InternalServerErrorException('server side error');
     }
   }
+
+  async findOneByEmail(email: string) {
+    const currentUser = await this.userRepository.findOneBy({ email });
+    return currentUser;
+  }
 }

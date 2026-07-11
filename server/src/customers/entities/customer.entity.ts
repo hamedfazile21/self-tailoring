@@ -1,9 +1,11 @@
+import { User } from 'src/users/entities/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity('customers')
@@ -26,6 +28,7 @@ export class Customer {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   last_name?: string;
+
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;

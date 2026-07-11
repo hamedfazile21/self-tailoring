@@ -155,6 +155,10 @@ let UsersService = class UsersService {
             throw new common_1.InternalServerErrorException('server side error');
         }
     }
+    async findOneByEmail(email) {
+        const currentUser = await this.userRepository.findOneBy({ email });
+        return currentUser;
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

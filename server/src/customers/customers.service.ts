@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { Customer } from './entities/customer.entity';
+import { LoggedUser } from 'src/interface/global.interface';
 
 @Injectable()
 export class CustomersService {
@@ -13,9 +14,9 @@ export class CustomersService {
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto) {
-    const customer = this.repository.create(
-      createCustomerDto as Partial<Customer>,
-    );
+    const customer = this.repository.create({
+      ...createCustomerDto,
+    });
     return this.repository.save(customer);
   }
 
@@ -24,8 +25,14 @@ export class CustomersService {
   }
 
   async findOne(id: number) {
-    const customer = await this.repository.findOneBy({ id });
-    if (!customer) throw new NotFoundException(`Customer #${id} not found`);
+    const customer = await this.repository.findOne({
+      where: { id: id },
+    });
+    if (!customer)
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        data: ['Customer Not Found'],
+      });
     return customer;
   }
 
@@ -38,7 +45,10 @@ export class CustomersService {
   async remove(id: number) {
     const deleteRow = await this.repository.delete({ id });
     if (deleteRow.affected === 0) {
-      throw new NotFoundException('customer Not Found');
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        data: ['Customer Not Found'],
+      });
     }
     return ['customer deleted successfully'];
   }
