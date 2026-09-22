@@ -26,10 +26,14 @@ let MeasurementsService = class MeasurementsService {
         this.repository = repository;
     }
     async create(createMeasurementDto) {
-        const { customer_id } = createMeasurementDto;
-        await this.customersService.findOne(customer_id);
-        const newRecode = this.repository.create(createMeasurementDto);
-        return await this.repository.save(newRecode);
+        const { customer_id, ...measurementData } = createMeasurementDto;
+        const customer = await this.customersService.findOne(customer_id);
+        const newRecode = this.repository.create({
+            ...measurementData,
+            customer,
+        });
+        await this.repository.save(newRecode);
+        return createMeasurementDto;
     }
     async findAll() {
         return await this.repository.find();
@@ -65,6 +69,7 @@ let MeasurementsService = class MeasurementsService {
 exports.MeasurementsService = MeasurementsService;
 exports.MeasurementsService = MeasurementsService = __decorate([
     (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)((0, common_1.forwardRef)(() => customers_service_1.CustomersService))),
     __param(1, (0, typeorm_2.InjectRepository)(measurement_entity_1.Measurement)),
     __metadata("design:paramtypes", [customers_service_1.CustomersService,
         typeorm_1.Repository])

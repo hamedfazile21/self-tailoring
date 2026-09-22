@@ -1,4 +1,5 @@
 import { User } from 'src/users/entities/user.entity';
+import { Measurement } from 'src/measurements/entities/measurement.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('customers')
@@ -29,6 +31,8 @@ export class Customer {
   @Column({ type: 'varchar', length: 255, nullable: true })
   last_name?: string;
 
+  @OneToMany(() => Measurement, (measurement) => measurement.customer)
+  measurements!: Measurement[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;

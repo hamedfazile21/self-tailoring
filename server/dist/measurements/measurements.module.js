@@ -18,9 +18,13 @@ let MeasurementsModule = class MeasurementsModule {
 exports.MeasurementsModule = MeasurementsModule;
 exports.MeasurementsModule = MeasurementsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([measurement_entity_1.Measurement]), customers_module_1.CustomersModule],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([measurement_entity_1.Measurement]),
+            (0, common_1.forwardRef)(() => customers_module_1.CustomersModule),
+        ],
         controllers: [measurements_controller_1.MeasurementsController],
         providers: [measurements_service_1.MeasurementsService],
+        exports: [measurements_service_1.MeasurementsService],
     })
 ], MeasurementsModule);
 //# sourceMappingURL=measurements.module.js.map

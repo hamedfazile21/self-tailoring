@@ -1,4 +1,10 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMeasurementDto } from './dto/create-measurement.dto';
 import { UpdateMeasurementDto } from './dto/update-measurement.dto';
 import { Repository } from 'typeorm';
@@ -9,6 +15,7 @@ import { CustomersService } from 'src/customers/customers.service';
 @Injectable()
 export class MeasurementsService {
   constructor(
+    @Inject(forwardRef(() => CustomersService))
     private readonly customersService: CustomersService,
 
     @InjectRepository(Measurement)
@@ -16,12 +23,16 @@ export class MeasurementsService {
   ) {}
 
   async create(createMeasurementDto: CreateMeasurementDto) {
-    const { customer_id } = createMeasurementDto;
+    const { customer_id, ...measurementData } = createMeasurementDto;
 
-    await this.customersService.findOne(customer_id);
+    const customer = await this.customersService.findOne(customer_id);
 
-    const newRecode = this.repository.create(createMeasurementDto);
-    return await this.repository.save(newRecode);
+    const newRecode = this.repository.create({
+      ...measurementData,
+      customer,
+    });
+    await this.repository.save(newRecode);
+    return createMeasurementDto;
   }
 
   async findAll() {

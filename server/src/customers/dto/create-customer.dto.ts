@@ -5,6 +5,12 @@ import {
   MaxLength,
   IsIn,
 } from 'class-validator';
+import { OmitType } from '@nestjs/mapped-types';
+import { CreateMeasurementDto } from 'src/measurements/dto/create-measurement.dto';
+
+class CustomerMeasurementDto extends OmitType(CreateMeasurementDto, [
+  'customer_id',
+] as const) {}
 
 export class CreateCustomerDto {
   @IsString()
@@ -25,4 +31,7 @@ export class CreateCustomerDto {
   @IsNotEmpty()
   @IsIn(['active', 'inactive'])
   status?: 'active' | 'inactive';
+
+  @IsOptional()
+  measurement?: CustomerMeasurementDto;
 }

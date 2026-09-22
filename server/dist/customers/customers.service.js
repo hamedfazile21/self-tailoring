@@ -17,23 +17,33 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const customer_entity_1 = require("./entities/customer.entity");
+const measurements_service_1 = require("../measurements/measurements.service");
 let CustomersService = class CustomersService {
+    measurementsService;
     repository;
-    constructor(repository) {
+    constructor(measurementsService, repository) {
+        this.measurementsService = measurementsService;
         this.repository = repository;
     }
     async create(createCustomerDto) {
-        const customer = this.repository.create({
-            ...createCustomerDto,
-        });
-        return this.repository.save(customer);
+        const { measurement, ...customerData } = createCustomerDto;
+        const customer = this.repository.create(customerData);
+        const savedCustomer = await this.repository.save(customer);
+        if (measurement) {
+            await this.measurementsService.create({
+                ...measurement,
+                customer_id: savedCustomer.id,
+            });
+        }
+        return this.findOne(savedCustomer.id);
     }
     async findAll() {
-        return this.repository.find();
+        return this.repository.find({ relations: { measurements: true } });
     }
     async findOne(id) {
         const customer = await this.repository.findOne({
             where: { id: id },
+            relations: { measurements: true },
         });
         if (!customer)
             throw new common_1.NotFoundException({
@@ -61,7 +71,9 @@ let CustomersService = class CustomersService {
 exports.CustomersService = CustomersService;
 exports.CustomersService = CustomersService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(customer_entity_1.Customer)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(0, (0, common_1.Inject)((0, common_1.forwardRef)(() => measurements_service_1.MeasurementsService))),
+    __param(1, (0, typeorm_1.InjectRepository)(customer_entity_1.Customer)),
+    __metadata("design:paramtypes", [measurements_service_1.MeasurementsService,
+        typeorm_2.Repository])
 ], CustomersService);
 //# sourceMappingURL=customers.service.js.map

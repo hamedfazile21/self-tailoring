@@ -15,7 +15,7 @@ export class Measurement {
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.id, {
+  @ManyToOne(() => Customer, (customer) => customer.measurements, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'customer_id' })

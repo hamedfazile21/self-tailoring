@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", Number)
 ], Measurement.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, (customer) => customer.id, {
+    (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, (customer) => customer.measurements, {
         onDelete: 'CASCADE',
     }),
     (0, typeorm_1.JoinColumn)({ name: 'customer_id' }),
