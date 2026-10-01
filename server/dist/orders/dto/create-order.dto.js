@@ -22,6 +22,7 @@ class CreateOrderDto {
     chest_pocket;
     quantity;
     price;
+    status;
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
@@ -71,4 +72,9 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['pending', 'done']),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "status", void 0);
 //# sourceMappingURL=create-order.dto.js.map

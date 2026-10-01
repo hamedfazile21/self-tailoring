@@ -10,6 +10,7 @@ export declare class MeasurementsService {
     create(createMeasurementDto: CreateMeasurementDto): Promise<CreateMeasurementDto>;
     findAll(): Promise<Measurement[]>;
     findOne(id: number): Promise<Measurement>;
+    findByCustomer(customerId: number): Promise<Measurement[]>;
     update(id: number, updateMeasurementDto: UpdateMeasurementDto): Promise<Measurement>;
     remove(id: number): Promise<string[]>;
 }

@@ -48,4 +48,7 @@ export class Order {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price!: number;
+
+  @Column({ type: 'enum', enum: ['pending', 'done'], default: 'pending' })
+  status!: 'pending' | 'done';
 }

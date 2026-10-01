@@ -4,6 +4,8 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
+  IsIn,
   IsString,
   Min,
 } from 'class-validator';
@@ -45,4 +47,8 @@ export class CreateOrderDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   price!: number;
+
+  @IsOptional()
+  @IsIn(['pending', 'done'])
+  status?: 'pending' | 'done';
 }

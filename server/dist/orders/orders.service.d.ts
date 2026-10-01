@@ -20,6 +20,6 @@ export declare class OrdersService {
         };
     }>;
     findOne(id: number): Promise<Order>;
-    update(id: number, updateOrderDto: UpdateOrderDto): Promise<string>;
-    remove(id: number): Promise<string>;
+    update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order>;
+    remove(id: number): Promise<string[]>;
 }

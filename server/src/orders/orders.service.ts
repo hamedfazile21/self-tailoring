@@ -54,6 +54,7 @@ export class OrdersService {
     } = createOrderDto;
     const order = this.orderRepository.create({
       ...orderData,
+      status: orderData.status ?? 'pending',
       customer,
       measurement,
     });
@@ -107,10 +108,49 @@ export class OrdersService {
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+    const order = await this.findOne(id);
+    const customerId = updateOrderDto.customer_id ?? order.customer.id;
+    const measurementId = updateOrderDto.measurement_id ?? order.measurement.id;
+
+    const [customer, measurement] = await Promise.all([
+      this.customerRepository.findOneBy({ id: customerId }),
+      this.measurementRepository.findOne({
+        where: { id: measurementId },
+        relations: { customer: true },
+      }),
+    ]);
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with id ${customerId} not found`);
+    }
+    if (!measurement) {
+      throw new NotFoundException(
+        `Measurement with id ${measurementId} not found`,
+      );
+    }
+    if (measurement.customer.id !== customer.id) {
+      throw new BadRequestException(
+        `Measurement with id ${measurement.id} does not belong to customer with id ${customer.id}`,
+      );
+    }
+
+    const {
+      customer_id: _customerId,
+      measurement_id: _measurementId,
+      ...orderData
+    } = updateOrderDto;
+    Object.assign(order, orderData, { customer, measurement });
+    await this.orderRepository.save(order);
+
+    return this.findOne(id);
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} order`;
+    const order = await this.findOne(id);
+    if (!order) {
+      throw new NotFoundException({ message: `Order with id ${id} not found` });
+    }
+    await this.orderRepository.remove(order);
+    return ['order deleted successfully'];
   }
 }

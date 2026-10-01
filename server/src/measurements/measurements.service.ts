@@ -50,6 +50,26 @@ export class MeasurementsService {
     return findRow;
   }
 
+  async findByCustomer(customerId: number) {
+    const findCustomer = await this.customersService.findOne(customerId);
+    if (!findCustomer) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        data: ['Customer Not Found'],
+      });
+    }
+    const findRow = await this.repository.find({
+      where: { customer: { id: customerId } },
+    });
+    if (!findRow || findRow.length === 0) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        data: ['Measurements Not Found for the Customer'],
+      });
+    }
+    return findRow;
+  }
+
   async update(id: number, updateMeasurementDto: UpdateMeasurementDto) {
     const { customer_id, ...rest } = updateMeasurementDto;
 

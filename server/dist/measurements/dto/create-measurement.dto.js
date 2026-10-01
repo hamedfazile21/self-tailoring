@@ -13,6 +13,7 @@ exports.CreateMeasurementDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateMeasurementDto {
     customer_id;
+    name;
     length;
     shoulder;
     sleeve_length;
@@ -28,6 +29,12 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateMeasurementDto.prototype, "customer_id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(255),
+    __metadata("design:type", String)
+], CreateMeasurementDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),

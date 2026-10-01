@@ -17,6 +17,7 @@ let Measurement = class Measurement {
     id;
     customer;
     orders;
+    name;
     length;
     shoulder;
     sleeve_length;
@@ -44,6 +45,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => order_entity_1.Order, (order) => order.measurement),
     __metadata("design:type", Array)
 ], Measurement.prototype, "orders", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
+    __metadata("design:type", Object)
+], Measurement.prototype, "name", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'int' }),
     __metadata("design:type", Number)

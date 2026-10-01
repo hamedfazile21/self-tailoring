@@ -4,6 +4,7 @@ export declare class Measurement {
     id: number;
     customer: Customer;
     orders: Order[];
+    name?: string | null;
     length: number;
     shoulder: number;
     sleeve_length: number;

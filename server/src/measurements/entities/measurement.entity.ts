@@ -25,6 +25,9 @@ export class Measurement {
   @OneToMany(() => Order, (order) => order.measurement)
   orders!: Order[];
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  name?: string | null;
+
   @Column({ type: 'int' })
   length!: number;
 

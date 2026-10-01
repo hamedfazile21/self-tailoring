@@ -25,6 +25,7 @@ let Order = class Order {
     chest_pocket;
     quantity;
     price;
+    status;
 };
 exports.Order = Order;
 __decorate([
@@ -77,6 +78,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
     __metadata("design:type", Number)
 ], Order.prototype, "price", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'enum', enum: ['pending', 'done'], default: 'pending' }),
+    __metadata("design:type", String)
+], Order.prototype, "status", void 0);
 exports.Order = Order = __decorate([
     (0, typeorm_1.Entity)('orders')
 ], Order);

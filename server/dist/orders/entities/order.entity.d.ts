@@ -12,4 +12,5 @@ export declare class Order {
     chest_pocket: boolean;
     quantity: number;
     price: number;
+    status: 'pending' | 'done';
 }

@@ -32,6 +32,9 @@ let MeasurementsController = class MeasurementsController {
     findOne(id) {
         return this.measurementsService.findOne(id);
     }
+    findByCustomer(customerId) {
+        return this.measurementsService.findByCustomer(customerId);
+    }
     update(id, updateMeasurementDto) {
         return this.measurementsService.update(id, updateMeasurementDto);
     }
@@ -63,6 +66,14 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], MeasurementsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('/customer_show/:customerId'),
+    __param(0, (0, common_1.Param)('customerId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], MeasurementsController.prototype, "findByCustomer", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Patch)('/update/:id'),

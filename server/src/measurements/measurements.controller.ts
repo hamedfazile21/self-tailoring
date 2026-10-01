@@ -37,6 +37,12 @@ export class MeasurementsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('/customer_show/:customerId')
+  findByCustomer(@Param('customerId', ParseIntPipe) customerId: number) {
+    return this.measurementsService.findByCustomer(customerId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('/update/:id')
   update(
     @Param('id', ParseIntPipe) id: number,

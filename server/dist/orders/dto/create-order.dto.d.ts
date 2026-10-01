@@ -9,4 +9,5 @@ export declare class CreateOrderDto {
     chest_pocket: boolean;
     quantity: number;
     price: number;
+    status?: 'pending' | 'done';
 }
