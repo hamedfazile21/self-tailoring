@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Customer = void 0;
 const measurement_entity_1 = require("../../measurements/entities/measurement.entity");
+const order_entity_1 = require("../../orders/entities/order.entity");
 const typeorm_1 = require("typeorm");
 let Customer = class Customer {
     id;
@@ -19,6 +20,7 @@ let Customer = class Customer {
     status;
     last_name;
     measurements;
+    orders;
     created_at;
     updated_at;
 };
@@ -51,6 +53,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => measurement_entity_1.Measurement, (measurement) => measurement.customer),
     __metadata("design:type", Array)
 ], Customer.prototype, "measurements", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => order_entity_1.Order, (order) => order.customer),
+    __metadata("design:type", Array)
+], Customer.prototype, "orders", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }),
     __metadata("design:type", Date)

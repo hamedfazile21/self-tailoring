@@ -11,10 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Measurement = void 0;
 const customer_entity_1 = require("../../customers/entities/customer.entity");
+const order_entity_1 = require("../../orders/entities/order.entity");
 const typeorm_1 = require("typeorm");
 let Measurement = class Measurement {
     id;
     customer;
+    orders;
     length;
     shoulder;
     sleeve_length;
@@ -38,6 +40,10 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'customer_id' }),
     __metadata("design:type", customer_entity_1.Customer)
 ], Measurement.prototype, "customer", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => order_entity_1.Order, (order) => order.measurement),
+    __metadata("design:type", Array)
+], Measurement.prototype, "orders", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'int' }),
     __metadata("design:type", Number)

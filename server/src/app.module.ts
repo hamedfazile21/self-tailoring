@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { Measurement } from './measurements/entities/measurement.entity';
 import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { OrdersModule } from './orders/orders.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         socketPath: '/opt/lampp/var/mysql/mysql.sock', // In Linux i should use this path to know xammp
-        entities: [Customer , User , Measurement],
+        entities: [Customer, User, Measurement, Order],
         autoLoadEntities: true,
         synchronize: true,
         charset: 'utf8mb4_unicode_ci', // to support other language like farsi

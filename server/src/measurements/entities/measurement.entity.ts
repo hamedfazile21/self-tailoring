@@ -1,4 +1,5 @@
 import { Customer } from 'src/customers/entities/customer.entity';
+import { Order } from 'src/orders/entities/order.entity';
 import {
   Column,
   CreateDateColumn,
@@ -20,6 +21,9 @@ export class Measurement {
   })
   @JoinColumn({ name: 'customer_id' })
   customer!: Customer;
+
+  @OneToMany(() => Order, (order) => order.measurement)
+  orders!: Order[];
 
   @Column({ type: 'int' })
   length!: number;

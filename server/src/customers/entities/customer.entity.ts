@@ -1,5 +1,6 @@
 import { User } from 'src/users/entities/user.entity';
 import { Measurement } from 'src/measurements/entities/measurement.entity';
+import { Order } from 'src/orders/entities/order.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -33,6 +34,9 @@ export class Customer {
 
   @OneToMany(() => Measurement, (measurement) => measurement.customer)
   measurements!: Measurement[];
+
+  @OneToMany(() => Order, (order) => order.customer)
+  orders!: Order[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;

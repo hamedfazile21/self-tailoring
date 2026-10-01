@@ -1,7 +1,9 @@
 import { Customer } from "../../customers/entities/customer.entity";
+import { Order } from "../../orders/entities/order.entity";
 export declare class Measurement {
     id: number;
     customer: Customer;
+    orders: Order[];
     length: number;
     shoulder: number;
     sleeve_length: number;
