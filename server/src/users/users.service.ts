@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -53,10 +53,35 @@ export class UsersService {
     }
   }
 
-  async findAll() {
-    return await this.userRepository.find({
-      select: this.allowFields,
+  async findAll(page = 1, limit = 10, search = '') {
+    const currentPage =
+      Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+    const pageSize =
+      Number.isInteger(Number(limit)) && Number(limit) > 0
+        ? Math.min(Number(limit), 100)
+        : 10;
+    const normalizedSearch = search.trim();
+    const where = normalizedSearch
+      ? [
+          { name: Like(`%${normalizedSearch}%`) },
+          { email: Like(`%${normalizedSearch}%`) },
+        ]
+      : undefined;
+    const [data, total] = await this.userRepository.findAndCount({
+      where,
+      order: { id: 'DESC' },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
     });
+    return {
+      data,
+      pagination: {
+        page: currentPage,
+        limit: pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
   }
 
   async findOne(id: number) {

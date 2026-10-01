@@ -12,7 +12,15 @@ export declare class UsersController {
         created_at: Date;
         updated_at: Date;
     } & import("./entities/user.entity").User) | undefined>;
-    findAll(): Promise<import("./entities/user.entity").User[]>;
+    findAll(page?: string, limit?: string, search?: string): Promise<{
+        data: import("./entities/user.entity").User[];
+        pagination: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    }>;
     findOne(id: number): Promise<import("./entities/user.entity").User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<import("./entities/user.entity").User | undefined>;
     remove(id: number): Promise<string[]>;

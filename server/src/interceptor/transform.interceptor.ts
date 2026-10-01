@@ -11,10 +11,21 @@ export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const response = context.switchToHttp().getResponse();
     return next.handle().pipe(
-      map((data) => ({
-        status: response.statusCode,
-        data: data,
-      })),
+      map((result) => {
+        const hasPagination =
+          result !== null &&
+          typeof result === 'object' &&
+          'data' in result &&
+          'pagination' in result;
+
+        return {
+          status: response.statusCode,
+          data: hasPagination ? result.data : result,
+          ...(hasPagination && result.pagination !== undefined
+            ? { pagination: result.pagination }
+            : {}),
+        };
+      }),
     );
   }
 }

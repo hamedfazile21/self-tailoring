@@ -88,10 +88,33 @@ let UsersService = class UsersService {
             }
         }
     }
-    async findAll() {
-        return await this.userRepository.find({
-            select: this.allowFields,
+    async findAll(page = 1, limit = 10, search = '') {
+        const currentPage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+        const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
+            ? Math.min(Number(limit), 100)
+            : 10;
+        const normalizedSearch = search.trim();
+        const where = normalizedSearch
+            ? [
+                { name: (0, typeorm_1.Like)(`%${normalizedSearch}%`) },
+                { email: (0, typeorm_1.Like)(`%${normalizedSearch}%`) },
+            ]
+            : undefined;
+        const [data, total] = await this.userRepository.findAndCount({
+            where,
+            order: { id: 'DESC' },
+            skip: (currentPage - 1) * pageSize,
+            take: pageSize,
         });
+        return {
+            data,
+            pagination: {
+                page: currentPage,
+                limit: pageSize,
+                total,
+                totalPages: Math.ceil(total / pageSize),
+            },
+        };
     }
     async findOne(id) {
         const user = await this.userRepository.findOne({

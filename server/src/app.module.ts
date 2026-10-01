@@ -10,6 +10,7 @@ import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MeasurementsModule } from './measurements/measurements.module';
 import { Measurement } from './measurements/entities/measurement.entity';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -45,6 +46,8 @@ import { Measurement } from './measurements/entities/measurement.entity';
     AuthModule,
 
     MeasurementsModule,
+
+    OrdersModule,
   ],
   // imports: [CustomersModule],
   controllers: [AppController],

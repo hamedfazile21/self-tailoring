@@ -15,7 +15,15 @@ export declare class UsersService {
         created_at: Date;
         updated_at: Date;
     } & User) | undefined>;
-    findAll(): Promise<User[]>;
+    findAll(page?: number, limit?: number, search?: string): Promise<{
+        data: User[];
+        pagination: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    }>;
     findOne(id: number): Promise<User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<User | undefined>;
     remove(id: number): Promise<string[]>;
