@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
@@ -29,8 +30,16 @@ export class CustomersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@CurrentUser() user: LoggedUser) {
-    return this.customersService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.customersService.findAll(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10,
+      search ?? '',
+    );
   }
 
   @UseGuards(JwtAuthGuard)

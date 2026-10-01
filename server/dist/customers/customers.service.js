@@ -37,8 +37,34 @@ let CustomersService = class CustomersService {
         }
         return this.findOne(savedCustomer.id);
     }
-    async findAll() {
-        return this.repository.find({ relations: { measurements: true } });
+    async findAll(page = 1, limit = 10, search = '') {
+        const currentPage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+        const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
+            ? Math.min(Number(limit), 100)
+            : 10;
+        const normalizedSearch = search.trim();
+        const where = normalizedSearch
+            ? [
+                { name: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
+                { phone: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
+            ]
+            : undefined;
+        const [data, total] = await this.repository.findAndCount({
+            where,
+            relations: { measurements: true },
+            order: { id: 'DESC' },
+            skip: (currentPage - 1) * pageSize,
+            take: pageSize,
+        });
+        return {
+            data,
+            pagination: {
+                page: currentPage,
+                limit: pageSize,
+                total,
+                totalPages: Math.ceil(total / pageSize),
+            },
+        };
     }
     async findOne(id) {
         const customer = await this.repository.findOne({

@@ -18,7 +18,6 @@ const customers_service_1 = require("./customers.service");
 const create_customer_dto_1 = require("./dto/create-customer.dto");
 const update_customer_dto_1 = require("./dto/update-customer.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const user_decorator_1 = require("../auth/decorator/user.decorator");
 let CustomersController = class CustomersController {
     customersService;
     constructor(customersService) {
@@ -27,8 +26,8 @@ let CustomersController = class CustomersController {
     create(createCustomerDto) {
         return this.customersService.create(createCustomerDto);
     }
-    findAll(user) {
-        return this.customersService.findAll();
+    findAll(page, limit, search) {
+        return this.customersService.findAll(page ? Number(page) : 1, limit ? Number(limit) : 10, search ?? '');
     }
     findOne(id) {
         return this.customersService.findOne(id);
@@ -52,9 +51,11 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)(),
-    __param(0, (0, user_decorator_1.CurrentUser)()),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "findAll", null);
 __decorate([
