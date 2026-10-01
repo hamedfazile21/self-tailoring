@@ -17,26 +17,88 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const order_entity_1 = require("./entities/order.entity");
 const typeorm_2 = require("@nestjs/typeorm");
+const customer_entity_1 = require("../customers/entities/customer.entity");
+const measurement_entity_1 = require("../measurements/entities/measurement.entity");
 let OrdersService = class OrdersService {
     orderRepository;
-    constructor(orderRepository) {
+    customerRepository;
+    measurementRepository;
+    constructor(orderRepository, customerRepository, measurementRepository) {
         this.orderRepository = orderRepository;
+        this.customerRepository = customerRepository;
+        this.measurementRepository = measurementRepository;
     }
-    create(createOrderDto) {
-        return 'This action adds a new order';
+    async create(createOrderDto) {
+        const [customer, measurement] = await Promise.all([
+            this.customerRepository.findOneBy({ id: createOrderDto.customer_id }),
+            this.measurementRepository.findOne({
+                where: { id: createOrderDto.measurement_id },
+                relations: { customer: true },
+            }),
+        ]);
+        if (!customer) {
+            throw new common_1.NotFoundException(`Customer with id ${createOrderDto.customer_id} not found`);
+        }
+        if (!measurement) {
+            throw new common_1.NotFoundException(`Measurement with id ${createOrderDto.measurement_id} not found`);
+        }
+        if (measurement.customer.id !== customer.id) {
+            throw new common_1.BadRequestException(`Measurement with id ${measurement.id} does not belong to customer with id ${customer.id}`);
+        }
+        const { customer_id: _customerId, measurement_id: _measurementId, ...orderData } = createOrderDto;
+        const order = this.orderRepository.create({
+            ...orderData,
+            customer,
+            measurement,
+        });
+        const savedOrder = await this.orderRepository.save(order);
+        return this.findOne(savedOrder.id);
     }
-    findAll() {
-        return this.orderRepository.find({
+    async findAll(page = 1, limit = 10, search = '') {
+        const currentPage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+        const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
+            ? Math.min(Number(limit), 100)
+            : 10;
+        const normalizedSearch = search.trim();
+        const where = normalizedSearch
+            ? [
+                { customer: { name: (0, typeorm_1.Like)(`%${normalizedSearch}%`) } },
+                { customer: { phone: (0, typeorm_1.Like)(`%${normalizedSearch}%`) } },
+                { start_date: (0, typeorm_1.Like)(`%${normalizedSearch}%`) },
+                { end_date: (0, typeorm_1.Like)(`%${normalizedSearch}%`) },
+            ]
+            : undefined;
+        const [data, total] = await this.orderRepository.findAndCount({
+            where,
+            relations: { customer: true, measurement: true },
+            order: { id: 'DESC' },
+            skip: (currentPage - 1) * pageSize,
+            take: pageSize,
+        });
+        return {
+            data,
+            pagination: {
+                page: currentPage,
+                limit: pageSize,
+                total,
+                totalPages: Math.ceil(total / pageSize),
+            },
+        };
+    }
+    async findOne(id) {
+        const findOrder = await this.orderRepository.findOne({
+            where: { id },
             relations: { customer: true, measurement: true },
         });
+        if (!findOrder) {
+            throw new common_1.NotFoundException({ message: `Order with id ${id} not found` });
+        }
+        return findOrder;
     }
-    findOne(id) {
-        return `This action returns a #${id} order`;
-    }
-    update(id, updateOrderDto) {
+    async update(id, updateOrderDto) {
         return `This action updates a #${id} order`;
     }
-    remove(id) {
+    async remove(id) {
         return `This action removes a #${id} order`;
     }
 };
@@ -44,6 +106,10 @@ exports.OrdersService = OrdersService;
 exports.OrdersService = OrdersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_2.InjectRepository)(order_entity_1.Order)),
-    __metadata("design:paramtypes", [typeorm_1.Repository])
+    __param(1, (0, typeorm_2.InjectRepository)(customer_entity_1.Customer)),
+    __param(2, (0, typeorm_2.InjectRepository)(measurement_entity_1.Measurement)),
+    __metadata("design:paramtypes", [typeorm_1.Repository,
+        typeorm_1.Repository,
+        typeorm_1.Repository])
 ], OrdersService);
 //# sourceMappingURL=orders.service.js.map

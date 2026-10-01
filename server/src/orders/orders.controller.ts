@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -25,8 +26,16 @@ export class OrdersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.ordersService.findAll(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10,
+      search ?? '',
+    );
   }
 
   @UseGuards(JwtAuthGuard)
