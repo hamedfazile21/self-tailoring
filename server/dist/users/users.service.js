@@ -162,21 +162,24 @@ let UsersService = class UsersService {
             }
         }
     }
-    async remove(id) {
-        const user = await this.userRepository.findOne({ where: { id } });
-        if (!user)
+    async remove(ids) {
+        if (!Array.isArray(ids) ||
+            ids.length === 0 ||
+            ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+            throw new common_1.BadRequestException('A non-empty array of valid user ids is required');
+        }
+        const deleteResult = await this.userRepository.delete(ids);
+        if (deleteResult.affected === 0) {
             throw new common_1.NotFoundException({
                 status: common_1.HttpStatus.NOT_FOUND,
                 message: 'not-found',
-                data: ['User Not Found'],
+                data: ['Users Not Found'],
             });
-        try {
-            await this.userRepository.delete(id);
-            return ['user deleted successfully'];
         }
-        catch (error) {
-            throw new common_1.InternalServerErrorException('server side error');
-        }
+        return {
+            message: 'Users deleted successfully',
+            affected: deleteResult.affected ?? 0,
+        };
     }
     async findOneByEmail(email) {
         const currentUser = await this.userRepository.findOneBy({ email });

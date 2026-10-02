@@ -1,8 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -134,20 +134,29 @@ export class UsersService {
     }
   }
 
-  async remove(id: number) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user)
+  async remove(ids: number[]) {
+    if (
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      ids.some((id) => !Number.isInteger(id) || id <= 0)
+    ) {
+      throw new BadRequestException(
+        'A non-empty array of valid user ids is required',
+      );
+    }
+
+    const deleteResult = await this.userRepository.delete(ids);
+    if (deleteResult.affected === 0) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
         message: 'not-found',
-        data: ['User Not Found'],
+        data: ['Users Not Found'],
       });
-    try {
-      await this.userRepository.delete(id);
-      return ['user deleted successfully'];
-    } catch (error) {
-      throw new InternalServerErrorException('server side error');
     }
+    return {
+      message: 'Users deleted successfully',
+      affected: deleteResult.affected ?? 0,
+    };
   }
 
   async findOneByEmail(email: string) {

@@ -23,5 +23,8 @@ export declare class UsersController {
     }>;
     findOne(id: number): Promise<import("./entities/user.entity").User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<import("./entities/user.entity").User | undefined>;
-    remove(id: number): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
 }

@@ -26,6 +26,9 @@ export declare class UsersService {
     }>;
     findOne(id: number): Promise<User>;
     update(id: number, updateUserDto: UpdateUserDto): Promise<User | undefined>;
-    remove(id: number): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
     findOneByEmail(email: string): Promise<User | null>;
 }
