@@ -16,5 +16,8 @@ export declare class CustomersController {
     }>;
     findOne(id: number): Promise<import("./entities/customer.entity").Customer>;
     update(id: number, updateCustomerDto: UpdateCustomerDto): Promise<import("./entities/customer.entity").Customer>;
-    remove(id: number): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
 }

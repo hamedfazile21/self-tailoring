@@ -35,8 +35,8 @@ let CustomersController = class CustomersController {
     update(id, updateCustomerDto) {
         return this.customersService.update(id, updateCustomerDto);
     }
-    remove(id) {
-        return this.customersService.remove(id);
+    remove(ids) {
+        return this.customersService.remove(ids);
     }
 };
 exports.CustomersController = CustomersController;
@@ -77,10 +77,10 @@ __decorate([
 ], CustomersController.prototype, "update", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Delete)('delete/:id'),
-    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    (0, common_1.Delete)('delete'),
+    __param(0, (0, common_1.Body)('ids')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "remove", null);
 exports.CustomersController = CustomersController = __decorate([

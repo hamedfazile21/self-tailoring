@@ -83,15 +83,23 @@ let CustomersService = class CustomersService {
         Object.assign(customer, updateCustomerDto);
         return this.repository.save(customer);
     }
-    async remove(id) {
-        const deleteRow = await this.repository.delete({ id });
-        if (deleteRow.affected === 0) {
+    async remove(ids) {
+        if (!Array.isArray(ids) ||
+            ids.length === 0 ||
+            ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+            throw new common_1.BadRequestException('A non-empty array of valid customer ids is required');
+        }
+        const deleteResult = await this.repository.delete(ids);
+        if (deleteResult.affected === 0) {
             throw new common_1.NotFoundException({
                 status: common_1.HttpStatus.NOT_FOUND,
-                data: ['Customer Not Found'],
+                data: ['Customers Not Found'],
             });
         }
-        return ['customer deleted successfully'];
+        return {
+            message: 'Customers deleted successfully',
+            affected: deleteResult.affected ?? 0,
+        };
     }
 };
 exports.CustomersService = CustomersService;

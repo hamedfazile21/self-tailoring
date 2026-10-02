@@ -145,12 +145,31 @@ export class OrdersService {
     return this.findOne(id);
   }
 
-  async remove(id: number) {
+  async remove(ids: number[]) {
+    if (
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      ids.some((id) => !Number.isInteger(id) || id <= 0)
+    ) {
+      throw new BadRequestException(
+        'A non-empty array of valid order ids is required',
+      );
+    }
+
+    const result = await this.orderRepository.delete(ids);
+    return {
+      message: 'Orders deleted successfully',
+      affected: result.affected ?? 0,
+    };
+  }
+
+  async done(id: number) {
     const order = await this.findOne(id);
     if (!order) {
       throw new NotFoundException({ message: `Order with id ${id} not found` });
     }
-    await this.orderRepository.remove(order);
-    return ['order deleted successfully'];
+    order.status = 'done';
+    await this.orderRepository.save(order);
+    return this.findOne(id);
   }
 }

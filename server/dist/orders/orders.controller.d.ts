@@ -16,5 +16,9 @@ export declare class OrdersController {
     }>;
     findOne(id: string): Promise<import("./entities/order.entity").Order>;
     update(id: string, updateOrderDto: UpdateOrderDto): Promise<import("./entities/order.entity").Order>;
-    remove(id: string): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
+    done(id: string): Promise<import("./entities/order.entity").Order>;
 }

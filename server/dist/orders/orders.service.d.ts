@@ -21,5 +21,9 @@ export declare class OrdersService {
     }>;
     findOne(id: number): Promise<Order>;
     update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order>;
-    remove(id: number): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
+    done(id: number): Promise<Order>;
 }

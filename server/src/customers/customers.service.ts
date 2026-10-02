@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   forwardRef,
   HttpStatus,
   Inject,
@@ -90,14 +91,27 @@ export class CustomersService {
     return this.repository.save(customer);
   }
 
-  async remove(id: number) {
-    const deleteRow = await this.repository.delete({ id });
-    if (deleteRow.affected === 0) {
+  async remove(ids: number[]) {
+    if (
+      !Array.isArray(ids) ||
+      ids.length === 0 ||
+      ids.some((id) => !Number.isInteger(id) || id <= 0)
+    ) {
+      throw new BadRequestException(
+        'A non-empty array of valid customer ids is required',
+      );
+    }
+
+    const deleteResult = await this.repository.delete(ids);
+    if (deleteResult.affected === 0) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
-        data: ['Customer Not Found'],
+        data: ['Customers Not Found'],
       });
     }
-    return ['customer deleted successfully'];
+    return {
+      message: 'Customers deleted successfully',
+      affected: deleteResult.affected ?? 0,
+    };
   }
 }

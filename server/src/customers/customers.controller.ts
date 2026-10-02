@@ -55,8 +55,9 @@ export class CustomersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('delete/:id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.customersService.remove(id);
+  @Delete('delete')
+  remove(@Body('ids') ids: number[]) {
+    return this.customersService.remove(ids);
   }
 }
+  

@@ -51,8 +51,14 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('delete/:id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+  @Delete('delete')
+  remove(@Body('ids') ids: number[]) {
+    return this.ordersService.remove(ids);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('done/:id')
+  done(@Param('id') id: string) {
+    return this.ordersService.done(+id);
   }
 }

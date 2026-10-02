@@ -121,13 +121,26 @@ let OrdersService = class OrdersService {
         await this.orderRepository.save(order);
         return this.findOne(id);
     }
-    async remove(id) {
+    async remove(ids) {
+        if (!Array.isArray(ids) ||
+            ids.length === 0 ||
+            ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+            throw new common_1.BadRequestException('A non-empty array of valid order ids is required');
+        }
+        const result = await this.orderRepository.delete(ids);
+        return {
+            message: 'Orders deleted successfully',
+            affected: result.affected ?? 0,
+        };
+    }
+    async done(id) {
         const order = await this.findOne(id);
         if (!order) {
             throw new common_1.NotFoundException({ message: `Order with id ${id} not found` });
         }
-        await this.orderRepository.remove(order);
-        return ['order deleted successfully'];
+        order.status = 'done';
+        await this.orderRepository.save(order);
+        return this.findOne(id);
     }
 };
 exports.OrdersService = OrdersService;

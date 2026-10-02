@@ -35,8 +35,11 @@ let OrdersController = class OrdersController {
     update(id, updateOrderDto) {
         return this.ordersService.update(+id, updateOrderDto);
     }
-    remove(id) {
-        return this.ordersService.remove(+id);
+    remove(ids) {
+        return this.ordersService.remove(ids);
+    }
+    done(id) {
+        return this.ordersService.done(+id);
     }
 };
 exports.OrdersController = OrdersController;
@@ -77,12 +80,20 @@ __decorate([
 ], OrdersController.prototype, "update", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Delete)('delete/:id'),
+    (0, common_1.Delete)('delete'),
+    __param(0, (0, common_1.Body)('ids')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", void 0)
+], OrdersController.prototype, "remove", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('done/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], OrdersController.prototype, "remove", null);
+], OrdersController.prototype, "done", null);
 exports.OrdersController = OrdersController = __decorate([
     (0, common_1.Controller)('orders'),
     __metadata("design:paramtypes", [orders_service_1.OrdersService])

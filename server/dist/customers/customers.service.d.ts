@@ -19,5 +19,8 @@ export declare class CustomersService {
     }>;
     findOne(id: number): Promise<Customer>;
     update(id: number, updateCustomerDto: UpdateCustomerDto): Promise<Customer>;
-    remove(id: number): Promise<string[]>;
+    remove(ids: number[]): Promise<{
+        message: string;
+        affected: number;
+    }>;
 }
