@@ -1,0 +1,499 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@import 'tailwindcss';
+@import './theme.css';
+@import './scrollbar.css';
+@variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: Shabnam;
+  src: url('../assets/Font/Shabnam.eot');
+  src:
+    url('../assets/Font/Shabnam.eot?#iefix') format('embedded-opentype'),
+    url('../assets/Font/Shabnam.woff2') format('woff2'),
+    url('../assets/Font/Shabnam.woff') format('woff'),
+    url('../assets/Font/Shabnam.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('../assets/Font/Shabnam-Bold.eot');
+  src:
+    url('../assets/Font/Shabnam-Bold.eot?#iefix') format('embedded-opentype'),
+    url('../assets/Font/Shabnam-Bold.woff2') format('woff2'),
+    url('../assets/Font/Shabnam-Bold.woff') format('woff'),
+    url('../assets/Font/Shabnam-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('../assets/Font/Shabnam-Thin.eot');
+  src:
+    url('../assets/Font/Shabnam-Thin.eot?#iefix') format('embedded-opentype'),
+    url('../assets/Font/Shabnam-Thin.woff2') format('woff2'),
+    url('../assets/Font/Shabnam-Thin.woff') format('woff'),
+    url('../assets/Font/Shabnam-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('../assets/Font/Shabnam-Light.eot');
+  src:
+    url('../assets/Font/Shabnam-Light.eot?#iefix') format('embedded-opentype'),
+    url('../assets/Font/Shabnam-Light.woff2') format('woff2'),
+    url('../assets/Font/Shabnam-Light.woff') format('woff'),
+    url('../assets/Font/Shabnam-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Shabnam;
+  src: url('../assets/Font/Shabnam-Medium.eot');
+  src:
+    url('../assets/Font/Shabnam-Medium.eot?#iefix') format('embedded-opentype'),
+    url('../assets/Font/Shabnam-Medium.woff2') format('woff2'),
+    url('../assets/Font/Shabnam-Medium.woff') format('woff'),
+    url('../assets/Font/Shabnam-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --font-inter: 'Inter', sans-serif;
+  --font-shabnam: 'Shabnam', sans-serif;
+  --text-system: 14px;
+  --color-borderColor: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted-foreground);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+}
+
+@layer base {
+  html {
+    @apply font-inter rtl:font-shabnam;
+  }
+}
+* {
+  /* @apply text-foreground */
+  box-sizing: border-box;
+  /* font-family: "Outfit", sans-serif; */
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+}
+
+button {
+  @apply cursor-pointer;
+}
+
+@utility glass {
+  @apply relative border border-black/8 bg-surface/60
+    backdrop-blur-xl backdrop-saturate-150
+    shadow-md shadow-black/5
+    inset-ring-1 inset-ring-white/40
+    dark:border-white/10 dark:bg-surface/35 dark:shadow-black/20 dark:inset-ring-white/5;
+}
+
+@utility glass-solid {
+  @apply border border-borderColor bg-surface/50
+    backdrop-blur-xl backdrop-saturate-150;
+}
+
+.btn {
+  @apply inline-flex w-fit items-center justify-center gap-x-1.5 rounded-md p-2 text-sm font-semibold
+    text-foreground outline-none transition-all duration-200 ease-out
+    disabled:pointer-events-none disabled:opacity-50
+    focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}
+
+/* ---- Sizes ----
+   .btn's own p-2/text-sm acts as the implicit "md" default (unchanged,
+   so every existing `className="btn btn-primary"` usage stays correct).
+   .btn-md is a harmless explicit alias for when you want to say it
+   directly; .btn-sm/.btn-lg override the base padding/font-size. */
+.btn-sm {
+  @apply gap-x-1 px-2.5 py-1.5 text-xs;
+}
+
+.btn-md {
+  @apply gap-x-1.5 p-2 text-sm;
+}
+
+.btn-lg {
+  @apply gap-x-2 px-4 py-2.5 text-base;
+}
+
+/* ---- Solid variants ---- */
+.btn-primary {
+  @apply border border-transparent bg-primary text-white dark:text-foreground
+    shadow-sm shadow-primary/25
+    hover:bg-[color-mix(in_srgb,var(--color-primary)_85%,white)]
+    active:bg-[color-mix(in_srgb,var(--color-primary)_88%,black)]
+    focus-visible:ring-primary/40;
+}
+
+.btn-secondary {
+  @apply glass
+    hover:bg-surface-hover/50 hover:border-white/20
+    active:bg-surface-hover/60
+    focus-visible:ring-primary/30
+    dark:hover:bg-surface-hover/45;
+}
+
+.btn-success {
+  @apply border border-transparent bg-success text-white dark:text-foreground
+    shadow-sm shadow-success/25
+    hover:bg-[color-mix(in_srgb,var(--color-success)_85%,white)]
+    active:bg-[color-mix(in_srgb,var(--color-success)_88%,black)]
+    focus-visible:ring-success/40;
+}
+
+.btn-danger {
+  @apply border border-transparent bg-danger text-white dark:text-foreground
+    shadow-sm shadow-danger/25
+    hover:bg-[color-mix(in_srgb,var(--color-danger)_85%,white)]
+    active:bg-[color-mix(in_srgb,var(--color-danger)_88%,black)]
+    focus-visible:ring-danger/40;
+}
+
+.btn-info {
+  @apply border border-transparent bg-info text-white dark:text-foreground
+    shadow-sm shadow-info/25
+    hover:bg-[color-mix(in_srgb,var(--color-info)_85%,white)]
+    active:bg-[color-mix(in_srgb,var(--color-info)_88%,black)]
+    focus-visible:ring-info/40;
+}
+
+.btn-warning {
+  @apply border border-transparent bg-warning text-white dark:text-foreground
+    shadow-sm shadow-warning/25
+    hover:bg-[color-mix(in_srgb,var(--color-warning)_85%,white)]
+    active:bg-[color-mix(in_srgb,var(--color-warning)_88%,black)]
+    focus-visible:ring-warning/40;
+}
+
+/* ---- Outline variants ----
+   Transparent background, colored border + text; hover fills with a
+   soft tint of the same color instead of going solid. */
+.btn-primary-outline {
+  @apply border border-primary bg-transparent text-primary
+    hover:bg-primary/10 active:bg-primary/15
+    focus-visible:ring-primary/40;
+}
+
+.btn-secondary-outline {
+  @apply border border-borderColor bg-transparent text-foreground
+    hover:bg-surface-hover active:bg-surface-hover/70
+    focus-visible:ring-primary/30;
+}
+
+.btn-success-outline {
+  @apply border border-success bg-transparent text-success
+    hover:bg-success/10 active:bg-success/15
+    focus-visible:ring-success/40;
+}
+
+.btn-danger-outline {
+  @apply border border-danger bg-transparent text-danger
+    hover:bg-danger/10 active:bg-danger/15
+    focus-visible:ring-danger/40;
+}
+
+.btn-info-outline {
+  @apply border border-info bg-transparent text-info
+    hover:bg-info/10 active:bg-info/15
+    focus-visible:ring-info/40;
+}
+
+.btn-warning-outline {
+  @apply border border-warning bg-transparent text-warning
+    hover:bg-warning/10 active:bg-warning/15
+    focus-visible:ring-warning/40;
+}
+
+.btn-rounded-full {
+  @apply rounded-full;
+}
+
+.btn-rounded-full {
+  @apply rounded-full;
+}
+
+.btn-group {
+  @apply inline-flex;
+}
+
+.btn-group > .btn {
+  @apply w-auto rounded-none;
+}
+
+.btn-group > .btn:not(:first-child) {
+  margin-left: -1px; /* collapses the double border into a single line */
+}
+
+.btn-group > .btn:first-child {
+  @apply rounded-l-md;
+}
+
+.btn-group > .btn:last-child {
+  @apply rounded-r-md;
+}
+
+/* Keeps a hovered/focused button's border and focus ring fully visible
+   on top of its neighbors, instead of being partially covered by the
+   next button's -1px overlap. */
+.btn-group > .btn:hover,
+.btn-group > .btn:focus-visible {
+  @apply z-10;
+}
+
+/* Pairs with .btn-rounded-full buttons inside the group — rounds the
+   group's outer edges into full pills instead of the default btn-group
+   corner radius above. */
+.btn-group-full > .btn:first-child {
+  @apply rounded-l-full;
+}
+
+.btn-group-full > .btn:last-child {
+  @apply rounded-r-full;
+}
+
+/* Vertical variant — same collapsed-border idea, stacked top to bottom */
+.btn-group-vertical {
+  @apply inline-flex flex-col;
+}
+
+.btn-group-vertical > .btn {
+  @apply w-full rounded-none;
+}
+
+.btn-group-vertical > .btn:not(:first-child) {
+  margin-left: 0;
+  margin-top: -1px;
+}
+
+.btn-group-vertical > .btn:first-child {
+  @apply rounded-t-md;
+}
+
+.btn-group-vertical > .btn:last-child {
+  @apply rounded-b-md;
+}
+
+.input {
+  @apply glass-solid w-full rounded-md px-3 py-2 text-sm text-foreground
+    outline-none transition-all duration-200 placeholder:text-muted
+    focus:border-primary/50 focus:ring-2 focus:ring-primary/30;
+}
+
+.card {
+  @apply glass relative rounded-xl p-4 transition-all duration-200 ease-out text-foreground;
+}
+
+.card-hover {
+  @apply hover:bg-surface-hover/45 hover:border-white/20 hover:shadow-xl hover:shadow-black/10
+    hover:-translate-y-0.5
+    dark:hover:bg-surface-hover/40 dark:hover:shadow-black/30;
+}
+
+.card-header {
+  @apply mb-3 flex items-center justify-between border-b border-borderColor pb-3;
+}
+
+.card-title {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.card-body {
+  @apply text-sm text-muted;
+}
+
+.card-footer {
+  @apply mt-3 flex items-center justify-between border-t border-borderColor pt-3;
+}
+.checkbox {
+  @apply size-4.5 shrink-0 cursor-pointer appearance-none rounded-md
+    border border-borderColor bg-surface dark:bg-surface-hover
+    transition-all duration-150 ease-out
+    outline-none
+    checked:border-primary checked:bg-primary
+    indeterminate:border-primary indeterminate:bg-primary
+    hover:border-primary/50
+    focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background
+    disabled:cursor-not-allowed disabled:opacity-50;
+
+  /* Checkmark, drawn as a background SVG rather than a lucide icon overlay —
+     works with a single class, no extra wrapper/icon component needed for
+     the common case (contrast with the earlier custom checkbox pattern,
+     which needed a wrapping <label> + <Check> icon for a real SVG tick). */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+}
+
+.checkbox-rounded-full {
+  @apply size-4.5 shrink-0 cursor-pointer appearance-none rounded-full
+    border border-borderColor bg-surface dark:bg-surface-hover
+    transition-all duration-150 ease-out
+    outline-none
+    checked:border-primary checked:bg-primary
+    indeterminate:border-primary indeterminate:bg-primary
+    hover:border-primary/50
+    focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background
+    disabled:cursor-not-allowed disabled:opacity-50;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+}
+
+.checkbox-outline,
+.checkbox-rounded-full-outline {
+  @apply border-primary bg-transparent;
+}
+
+.checkbox-sm {
+  @apply size-4;
+}
+
+.checkbox-md {
+  @apply size-4.5;
+}
+
+.checkbox-lg {
+  @apply size-5.5;
+}
+
+.checkbox:checked,
+.checkbox-rounded-full:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+.checkbox:indeterminate,
+.checkbox-rounded-full:indeterminate {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M4 8h8' stroke='white' stroke-width='2' stroke-linecap='round'/%3e%3c/svg%3e");
+}
+
+.radio {
+  @apply size-4.5 shrink-0 cursor-pointer appearance-none rounded-full
+    border-2 border-borderColor bg-surface/70 dark:bg-surface-hover/70
+    transition-all duration-150 ease-out
+    outline-none
+    checked:border-primary checked:bg-primary
+    hover:border-primary/50
+    focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background
+    disabled:cursor-not-allowed disabled:opacity-50;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+}
+
+.radio-outline {
+  @apply border-primary bg-transparent;
+}
+
+.radio-sm {
+  @apply size-4;
+}
+
+.radio-md {
+  @apply size-4.5;
+}
+
+.radio-lg {
+  @apply size-5.5;
+}
+
+.radio:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+
+.radio-outline:checked {
+  @apply border-primary bg-transparent;
+  background-image: radial-gradient(
+    circle,
+    var(--color-primary) 0 34%,
+    transparent 37%
+  );
+}
+
+/* ==========================================================================
+   Table — add to global.css
+   Matches the header/row/footer styling already used by hand in
+   DataTable.tsx and any inline table implementation (e.g. TasksTablePowerful).
+   ========================================================================== */
+
+/* Wraps the raw <table> so it can scroll horizontally without
+   affecting the card's own layout. */
+.table-wrapper {
+  @apply overflow-x-auto;
+}
+
+/* <thead><tr> */
+.table-header-row {
+  @apply border-b border-borderColor bg-surface;
+}
+
+/* <th> */
+.table-header-cell {
+  @apply whitespace-nowrap px-4 py-2 text-start font-medium text-foreground;
+}
+
+/* Sortable header's inner button (icon + label) */
+.table-header-sort-button {
+  @apply flex items-center gap-x-1 transition-colors duration-150
+    hover:text-foreground
+    disabled:cursor-default disabled:hover:text-muted;
+}
+
+/* <tbody><tr> */
+.table-body-row {
+  @apply border-b border-borderColor/60 transition-colors duration-150
+    last:border-b-0
+    hover:bg-surface-hover/40
+    data-[state=selected]:bg-primary/5;
+}
+
+/* <td> */
+.table-body-cell {
+  @apply px-4 py-3 align-top text-sm text-start text-foreground;
+}
+
+/* Empty / loading state, spans the full row */
+.table-empty-state {
+  @apply flex flex-col items-center gap-y-2 py-12 text-center text-sm text-muted;
+}
+
+/* Footer bar — pagination, row counts, page size selector */
+.table-footer {
+  @apply flex flex-col gap-3 border-t border-borderColor p-4
+    sm:flex-row sm:items-center sm:justify-between;
+}
+
+.table-footer-text {
+  @apply text-xs text-muted;
+}
