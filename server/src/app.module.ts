@@ -16,6 +16,9 @@ import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/entities/setting.entity';
 
 @Module({
+
+  // TODO: and dashboard module and dashboard entity and dashboard service and dashboard controller
+
   imports: [
     // 1 : Enable the .env config
     ConfigModule.forRoot({
