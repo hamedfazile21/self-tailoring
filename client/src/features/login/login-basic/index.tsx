@@ -5,26 +5,44 @@ import Google from '../../../assets/media/google'
 import Linkedin from '../../../assets/media/linkedin'
 import { useTranslation } from 'react-i18next'
 import { GlassBlob1, GlassBlob2 } from '../../../assets'
-import { Link } from '@tanstack/react-router'
+import { Link, redirect, useNavigate, useSearch } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { showObjectToast } from '#/helper/toast-helper'
+import { api, tokenStore } from '#/lib/api'
+import { hr } from 'zod/v4/locales'
 
 interface LoginFormValues {
   email: string
   password: string
-  rememberMe: boolean
+}
+
+interface PostResponse {
+  status: number
+  data: { token: string }
 }
 
 const LoginBasic = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { redirect } = useSearch({ from: '/_auth/login/' })
   const { Field, handleSubmit } = useForm({
     defaultValues: {
       email: '',
       password: '',
-      rememberMe: false,
     } as LoginFormValues,
 
     onSubmit: async ({ value }) => {
+      
+      await api
+        .post<PostResponse, LoginFormValues>('/auth/login', value)
+        .then(async (result) => {
+          tokenStore.setTokens({ accessToken: result.data.token })
+
+          await (redirect
+            ? navigate({ href: redirect })
+            : navigate({ to: '/' }))
+        })
+
       showObjectToast('Login From Submitted', value)
     },
   })
@@ -101,12 +119,6 @@ const LoginBasic = () => {
                       >
                         {t('Password')}
                       </label>
-                      <Link
-                        to="/forgotPassword-basic"
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        {t('Forgot password?')}
-                      </Link>
                     </div>
                     <div className="relative w-full">
                       <Input
@@ -124,19 +136,6 @@ const LoginBasic = () => {
             />
           </div>
 
-          <Field
-            name="rememberMe"
-            children={(field) => (
-              <label className="flex items-center gap-x-2 text-sm text-muted">
-                <CheckBox
-                  checked={field.state.value}
-                  onChange={() => field.handleChange(!field.state.value)}
-                />
-                {t('Remember me')}
-              </label>
-            )}
-          />
-
           <button type="submit" className="btn btn-primary mt-2 w-full!">
             {t('Sign in')}
           </button>
@@ -151,24 +150,6 @@ const LoginBasic = () => {
             {t('Sign up')}
           </Link>
         </p>
-        <div className="mt-6 relative">
-          <div className="flex items-center gap-x-3">
-            <div className="h-px flex-1 bg-borderColor" />
-            <p className="text-xs text-muted">{t('OR')}</p>
-            <div className="h-px flex-1 bg-borderColor" />
-          </div>
-          <div className="flex items-center justify-center gap-x-4 mt-1">
-            <button>
-              <Github />
-            </button>
-            <button>
-              <Google />
-            </button>
-            <button>
-              <Linkedin />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )

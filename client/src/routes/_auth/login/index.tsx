@@ -1,9 +1,10 @@
+import LoginBasic from '#/features/login/login-basic'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_auth/login/')({
-  component: RouteComponent,
+  /** `redirect` carries where the visitor was headed before the guard stepped in. */
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+  }),
+  component: LoginBasic,
 })
-
-function RouteComponent() {
-  return <div>Hello "/_auth/login/"!</div>
-}

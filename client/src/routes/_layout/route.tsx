@@ -1,8 +1,18 @@
 import Header from '#/components/layout/header'
 import Sidebar from '#/components/layout/sidebar'
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { isSignedIn } from '#/lib/auth'
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_layout')({
+  /**
+   * Guards every route nested under this layout. Running here rather than in a
+   * component means the protected UI never renders for a signed-out visitor.
+   */
+  beforeLoad: ({ location }) => {
+    if (!isSignedIn()) {
+      throw redirect({ to: '/login', search: { redirect: location.href } })
+    }
+  },
   component: AppLayoutComponent,
 })
 

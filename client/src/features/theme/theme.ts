@@ -1,7 +1,6 @@
 import i18n from '#/app/i18n'
-import { Navigate } from '@tanstack/react-router'
 import type { Language } from './slice/theme-types'
-import { tokenStore } from '@/lib/api/token'
+
 export function initializeTheme() {
   const theme = localStorage.getItem('theme-mode') ?? 'system'
 
@@ -39,12 +38,4 @@ export function initializeSystemLanguage() {
   if (language === 'farsi') {
     i18n.changeLanguage('fa')
   }
-}
-
-export function userIdentification() {
-  // const isLoggedIn = tokenStore.getAccessToken() !== null
-
-  // if (!isLoggedIn) {
-  //   Navigate({ to: '/login' })
-  // }
 }
