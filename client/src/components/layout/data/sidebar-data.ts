@@ -1,21 +1,5 @@
 import {
   ChartNoAxesCombined,
-  ClipboardCheck,
-  ListTodo,
-  Lock,
-  LogIn,
-  Mail,
-  MailQuestion,
-  MessageCircleMore,
-  RefreshCcwDot,
-  ScanLine,
-  CircleQuestionMark,
-  Box,
-  ChartPie,
-  Pyramid,
-  Table,
-  RectangleEllipsis,
-  Palette,
 } from 'lucide-react'
 
 export type SidebarChild = {

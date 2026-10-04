@@ -7,6 +7,8 @@ import SalesByCategory from './components/sales-by-category'
 import WeeklyActivity from './components/weekly-activity'
 import CardInfo from './components/card-info'
 import { useTranslation } from 'react-i18next'
+import { useEffect } from 'react'
+import { api } from '#/lib/api'
 
 export function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
@@ -28,8 +30,37 @@ export function ChartTooltip({ active, payload, label }: any) {
   )
 }
 
+interface userData {
+  id: number
+  name: string
+  email: string
+  password: string
+  created_at: string
+  updated_at: string
+}
+
+interface responseType {
+  status: number
+  data: userData[]
+  pagination: { page: number; limit: number; total: number; totalPages: number }
+}
+
 const Dashboard = () => {
   const { t } = useTranslation()
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const users = await api.get<responseType>('/users', {
+        params: { page: 1, limit: 10, search: '' },
+      })
+
+      console.log(users)
+      
+    }
+
+    fetchData()
+  }, [])
+
   return (
     <div className="flex flex-col gap-y-5">
       {/* Stat cards */}

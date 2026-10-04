@@ -32,6 +32,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/router-plugin": "^1.132.0",
     "@tippyjs/react": "^4.2.6",
+    "axios": "^1.20.0",
     "i18next": "^26.3.3",
     "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.545.0",

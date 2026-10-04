@@ -3,6 +3,7 @@ import {
   initializeSystemLanguage,
   initializeTheme,
   initializeThemePrimaryColor,
+  userIdentification,
 } from '@/features/theme/theme'
 
 export async function startup() {
@@ -13,6 +14,8 @@ export async function startup() {
   initializeSystemDir()
 
   initializeSystemLanguage()
+
+  userIdentification()
 
   // Future initialization
   // await restoreSession();
