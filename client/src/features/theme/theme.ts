@@ -41,10 +41,10 @@ export function initializeSystemLanguage() {
   }
 }
 
-// export function userIdentification() {
-//   const isLoggedIn = tokenStore.getAccessToken() !== null
+export function userIdentification() {
+  // const isLoggedIn = tokenStore.getAccessToken() !== null
 
-//   if (!isLoggedIn) {
-//     Navigate({ to: '/login' })
-//   }
-// }
+  // if (!isLoggedIn) {
+  //   Navigate({ to: '/login' })
+  // }
+}
