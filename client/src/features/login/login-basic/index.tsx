@@ -1,15 +1,9 @@
-import CheckBox from '#/components/checkbox'
 import Input from '#/components/input'
-import Github from '../../../assets/media/github'
-import Google from '../../../assets/media/google'
-import Linkedin from '../../../assets/media/linkedin'
 import { useTranslation } from 'react-i18next'
 import { GlassBlob1, GlassBlob2 } from '../../../assets'
-import { Link, redirect, useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
-import { showObjectToast } from '#/helper/toast-helper'
 import { api, tokenStore } from '#/lib/api'
-import { hr } from 'zod/v4/locales'
 
 interface LoginFormValues {
   email: string
@@ -32,7 +26,6 @@ const LoginBasic = () => {
     } as LoginFormValues,
 
     onSubmit: async ({ value }) => {
-      
       await api
         .post<PostResponse, LoginFormValues>('/auth/login', value)
         .then(async (result) => {
@@ -42,8 +35,6 @@ const LoginBasic = () => {
             ? navigate({ href: redirect })
             : navigate({ to: '/' }))
         })
-
-      showObjectToast('Login From Submitted', value)
     },
   })
   return (
@@ -141,7 +132,7 @@ const LoginBasic = () => {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted">
+        {/* <p className="mt-6 text-center text-sm text-muted">
           {t("Don't have an account?")}{' '}
           <Link
             to="/register-basic"
@@ -149,7 +140,7 @@ const LoginBasic = () => {
           >
             {t('Sign up')}
           </Link>
-        </p>
+        </p> */}
       </div>
     </div>
   )
