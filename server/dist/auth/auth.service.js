@@ -34,8 +34,10 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const payload = { sub: user.id, email: user.email };
+        const { password, ...userDetails } = user;
         return {
             token: this.jwtService.sign(payload),
+            user: userDetails,
         };
     }
 };

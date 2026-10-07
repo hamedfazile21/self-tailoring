@@ -19,9 +19,10 @@ export class UsersService {
   ) {}
 
   private allowFields = {
-    email: true,
     id: true,
+    email: true,
     name: true,
+    last_name: true,
     created_at: true,
     updated_at: true,
   };
@@ -34,7 +35,6 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    // TODO: Add another column like last_name 
     try {
       const { password, ...rest } = this.userRepository.create(createUserDto);
       const row = await this.userRepository.save({
@@ -42,7 +42,7 @@ export class UsersService {
         password: this.hashPassword(password),
       });
 
-      return row;
+      return rest;
     } catch (error: any) {
       if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
         throw new ConflictException({
@@ -73,6 +73,7 @@ export class UsersService {
       order: { id: 'DESC' },
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
+      select: this.allowFields,
     });
     return {
       data,

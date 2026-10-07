@@ -4,15 +4,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    create(createUserDto: CreateUserDto): Promise<({
-        password: string;
+    create(createUserDto: CreateUserDto): Promise<{
         id: number;
         name: string;
         last_name: string;
         email: string;
         created_at: Date;
         updated_at: Date;
-    } & import("./entities/user.entity").User) | undefined>;
+    } | undefined>;
     findAll(page?: string, limit?: string, search?: string): Promise<{
         data: import("./entities/user.entity").User[];
         pagination: {

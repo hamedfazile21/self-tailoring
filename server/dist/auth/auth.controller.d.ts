@@ -5,6 +5,14 @@ export declare class AuthController {
     constructor(authService: AuthService);
     login(body: LoginAuthDto): Promise<{
         token: string;
+        user: {
+            id: number;
+            name: string;
+            last_name: string;
+            email: string;
+            created_at: Date;
+            updated_at: Date;
+        };
     }>;
     logout(): Promise<string[]>;
 }

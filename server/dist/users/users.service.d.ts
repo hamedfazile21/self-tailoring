@@ -7,15 +7,14 @@ export declare class UsersService {
     constructor(userRepository: Repository<User>);
     private allowFields;
     private hashPassword;
-    create(createUserDto: CreateUserDto): Promise<({
-        password: string;
+    create(createUserDto: CreateUserDto): Promise<{
         id: number;
         name: string;
         last_name: string;
         email: string;
         created_at: Date;
         updated_at: Date;
-    } & User) | undefined>;
+    } | undefined>;
     findAll(page?: number, limit?: number, search?: string): Promise<{
         data: User[];
         pagination: {

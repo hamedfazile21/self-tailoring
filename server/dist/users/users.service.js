@@ -57,9 +57,10 @@ let UsersService = class UsersService {
         this.userRepository = userRepository;
     }
     allowFields = {
-        email: true,
         id: true,
+        email: true,
         name: true,
+        last_name: true,
         created_at: true,
         updated_at: true,
     };
@@ -76,7 +77,7 @@ let UsersService = class UsersService {
                 ...rest,
                 password: this.hashPassword(password),
             });
-            return row;
+            return rest;
         }
         catch (error) {
             if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
@@ -105,6 +106,7 @@ let UsersService = class UsersService {
             order: { id: 'DESC' },
             skip: (currentPage - 1) * pageSize,
             take: pageSize,
+            select: this.allowFields,
         });
         return {
             data,

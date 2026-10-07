@@ -10,9 +10,18 @@ interface LoginFormValues {
   password: string
 }
 
+interface LoginUser {
+  id: number
+  name: string
+  last_name: string
+  email: string
+  created_at: string
+  updated_at: string
+}
+
 interface PostResponse {
   status: number
-  data: { token: string }
+  data: { token: string; user: LoginUser }
 }
 
 const LoginBasic = () => {
