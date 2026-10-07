@@ -14,11 +14,9 @@ import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/entities/setting.entity';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
-
-  // TODO: and dashboard module and dashboard entity and dashboard service and dashboard controller
-
   imports: [
     // 1 : Enable the .env config
     ConfigModule.forRoot({
@@ -56,6 +54,8 @@ import { Setting } from './settings/entities/setting.entity';
     OrdersModule,
 
     SettingsModule,
+
+    DashboardModule,
   ],
   // imports: [CustomersModule],
   controllers: [AppController],

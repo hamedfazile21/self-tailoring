@@ -23,6 +23,7 @@ const orders_module_1 = require("./orders/orders.module");
 const order_entity_1 = require("./orders/entities/order.entity");
 const settings_module_1 = require("./settings/settings.module");
 const setting_entity_1 = require("./settings/entities/setting.entity");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -55,6 +56,7 @@ exports.AppModule = AppModule = __decorate([
             measurements_module_1.MeasurementsModule,
             orders_module_1.OrdersModule,
             settings_module_1.SettingsModule,
+            dashboard_module_1.DashboardModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
