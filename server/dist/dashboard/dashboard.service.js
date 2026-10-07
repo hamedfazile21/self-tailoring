@@ -73,25 +73,57 @@ let DashboardService = class DashboardService {
             total: months.reduce((sum, month) => sum + month.total, 0),
         };
     }
-    async pendingOrders(limit = 5) {
+    async pendingOrders(page = 1, limit = 4) {
+        const currentPage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
         const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
             ? Math.min(Number(limit), 100)
-            : 5;
+            : 4;
         const [data, total] = await this.orderRepository.findAndCount({
             where: { status: 'pending' },
             relations: { customer: true, measurement: true },
             order: { end_date: 'ASC', id: 'DESC' },
+            skip: (currentPage - 1) * pageSize,
             take: pageSize,
         });
         return {
             data,
             pagination: {
-                page: 1,
+                page: currentPage,
                 limit: pageSize,
                 total,
                 totalPages: Math.ceil(total / pageSize),
             },
         };
+    }
+    async topCustomers(limit = 5) {
+        const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
+            ? Math.min(Number(limit), 100)
+            : 5;
+        const rows = await this.orderRepository
+            .createQueryBuilder('order')
+            .innerJoin('order.customer', 'customer')
+            .select('customer.id', 'id')
+            .addSelect('customer.name', 'name')
+            .addSelect('customer.last_name', 'last_name')
+            .addSelect('customer.phone', 'phone')
+            .addSelect('COUNT(order.id)', 'orders')
+            .addSelect('SUM(order.price)', 'total')
+            .groupBy('customer.id')
+            .addGroupBy('customer.name')
+            .addGroupBy('customer.last_name')
+            .addGroupBy('customer.phone')
+            .orderBy('total', 'ASC')
+            .addOrderBy('customer.id', 'ASC')
+            .limit(pageSize)
+            .getRawMany();
+        return rows.map((row) => ({
+            id: Number(row.id),
+            name: row.name,
+            last_name: row.last_name,
+            phone: row.phone,
+            orders: Number(row.orders),
+            total: Number(row.total ?? 0),
+        }));
     }
 };
 exports.DashboardService = DashboardService;

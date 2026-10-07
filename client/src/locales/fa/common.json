@@ -97,5 +97,14 @@
   "Mailbox": "صندوق پیام‌ها",
   "Projects": "پروژه ها",
   "English": "انگلیسی",
-  "Farsi": "فارسی"
+  "Farsi": "فارسی",
+
+  "Total customers": "تعداد مشتریان",
+  "Total measurements": "تعداد اندازه‌گیری‌ها",
+  "Total orders": "تعداد سفارش‌ها",
+  "Orders": "سفارش‌ها",
+  "Monthly total for": "جمع ماهانه برای",
+  "Pending Orders": "سفارش‌های در انتظار",
+  "Top Customers": "مشتریان برتر",
+  "Total": "مجموع"
 }

@@ -27,8 +27,11 @@ let DashboardController = class DashboardController {
     monthlyOrders(year) {
         return this.dashboardService.monthlyOrders(year ? Number(year) : undefined);
     }
-    pendingOrders(limit) {
-        return this.dashboardService.pendingOrders(limit ? Number(limit) : 5);
+    pendingOrders(page, limit) {
+        return this.dashboardService.pendingOrders(page ? Number(page) : 1, limit ? Number(limit) : 4);
+    }
+    topCustomers(limit) {
+        return this.dashboardService.topCustomers(limit ? Number(limit) : 5);
     }
 };
 exports.DashboardController = DashboardController;
@@ -50,11 +53,20 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('pending-orders'),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], DashboardController.prototype, "pendingOrders", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('top-customers'),
     __param(0, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], DashboardController.prototype, "pendingOrders", null);
+], DashboardController.prototype, "topCustomers", null);
 exports.DashboardController = DashboardController = __decorate([
     (0, common_1.Controller)('dashboard'),
     __metadata("design:paramtypes", [dashboard_service_1.DashboardService])

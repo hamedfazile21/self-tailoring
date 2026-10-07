@@ -20,7 +20,16 @@ export class DashboardController {
 
   @UseGuards(JwtAuthGuard)
   @Get('pending-orders')
-  pendingOrders(@Query('limit') limit?: string) {
-    return this.dashboardService.pendingOrders(limit ? Number(limit) : 5);
+  pendingOrders(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.dashboardService.pendingOrders(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 4,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('top-customers')
+  topCustomers(@Query('limit') limit?: string) {
+    return this.dashboardService.topCustomers(limit ? Number(limit) : 5);
   }
 }

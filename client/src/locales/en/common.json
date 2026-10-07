@@ -1,3 +1,11 @@
 {
-    "name" : "Name"
+  "Total customers": "Total customers",
+  "Dashboard": "Dashboard",
+  "Total measurements": "Total measurements",
+  "Total orders": "Total orders",
+  "Orders": "Orders",
+  "Monthly total for": "Monthly total for",
+  "Pending Orders": "Pending Orders",
+  "Top Customers": "Top Customers",
+  "Total": "Total"
 }

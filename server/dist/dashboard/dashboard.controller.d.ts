@@ -18,7 +18,7 @@ export declare class DashboardController {
         orders: number;
         total: number;
     }>;
-    pendingOrders(limit?: string): Promise<{
+    pendingOrders(page?: string, limit?: string): Promise<{
         data: import("../orders/entities/order.entity").Order[];
         pagination: {
             page: number;
@@ -27,4 +27,12 @@ export declare class DashboardController {
             totalPages: number;
         };
     }>;
+    topCustomers(limit?: string): Promise<{
+        id: number;
+        name: string;
+        last_name: string | null;
+        phone: string;
+        orders: number;
+        total: number;
+    }[]>;
 }

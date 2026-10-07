@@ -23,7 +23,7 @@ export declare class DashboardService {
         orders: number;
         total: number;
     }>;
-    pendingOrders(limit?: number): Promise<{
+    pendingOrders(page?: number, limit?: number): Promise<{
         data: Order[];
         pagination: {
             page: number;
@@ -32,4 +32,12 @@ export declare class DashboardService {
             totalPages: number;
         };
     }>;
+    topCustomers(limit?: number): Promise<{
+        id: number;
+        name: string;
+        last_name: string | null;
+        phone: string;
+        orders: number;
+        total: number;
+    }[]>;
 }

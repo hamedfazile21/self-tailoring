@@ -11,6 +11,15 @@ interface MonthlyOrdersRow {
   total: string | null;
 }
 
+interface TopCustomerRow {
+  id: number;
+  name: string;
+  last_name: string | null;
+  phone: string;
+  orders: string;
+  total: string | null;
+}
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -77,29 +86,72 @@ export class DashboardService {
     };
   }
 
-  async pendingOrders(limit = 5) {
+  async pendingOrders(page = 1, limit = 4) {
+    const currentPage =
+      Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
     const pageSize =
       Number.isInteger(Number(limit)) && Number(limit) > 0
         ? Math.min(Number(limit), 100)
-        : 5;
+        : 4;
 
-    // `total` counts every pending order, not just the page, so the dashboard
-    // can show "5 of 23 pending".
+    // `total` counts every pending order, not just this page, so the dashboard
+    // can drive a pager off it.
     const [data, total] = await this.orderRepository.findAndCount({
       where: { status: 'pending' },
       relations: { customer: true, measurement: true },
       order: { end_date: 'ASC', id: 'DESC' },
+      skip: (currentPage - 1) * pageSize,
       take: pageSize,
     });
 
     return {
       data,
       pagination: {
-        page: 1,
+        page: currentPage,
         limit: pageSize,
         total,
         totalPages: Math.ceil(total / pageSize),
       },
     };
+  }
+
+  async topCustomers(limit = 5) {
+    const pageSize =
+      Number.isInteger(Number(limit)) && Number(limit) > 0
+        ? Math.min(Number(limit), 100)
+        : 5;
+
+    // An inner join, so a customer who has never ordered is simply absent
+    // rather than showing up with a total of zero. Every selected column is in
+    // the GROUP BY, which keeps the query valid under ONLY_FULL_GROUP_BY
+    // instead of relying on functional-dependency detection.
+    const rows: TopCustomerRow[] = await this.orderRepository
+      .createQueryBuilder('order')
+      .innerJoin('order.customer', 'customer')
+      .select('customer.id', 'id')
+      .addSelect('customer.name', 'name')
+      .addSelect('customer.last_name', 'last_name')
+      .addSelect('customer.phone', 'phone')
+      .addSelect('COUNT(order.id)', 'orders')
+      .addSelect('SUM(order.price)', 'total')
+      .groupBy('customer.id')
+      .addGroupBy('customer.name')
+      .addGroupBy('customer.last_name')
+      .addGroupBy('customer.phone')
+      .orderBy('total', 'ASC')
+      // Ties on total would otherwise come back in an arbitrary order, which
+      // makes the list jump between identical requests.
+      .addOrderBy('customer.id', 'ASC')
+      .limit(pageSize)
+      .getRawMany();
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      name: row.name,
+      last_name: row.last_name,
+      phone: row.phone,
+      orders: Number(row.orders),
+      total: Number(row.total ?? 0),
+    }));
   }
 }

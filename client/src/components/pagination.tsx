@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 type PaginationVariant = 'primary' | 'outline'
 type PaginationRounded = 'md' | 'full'
+type PaginationSize = 'sm' | 'md' | 'lg'
 
 interface PaginationProps {
   currentPage: number
@@ -20,6 +21,9 @@ interface PaginationProps {
   variant?: PaginationVariant
   /** 'md' (default) = rounded-md corners. 'full' = fully rounded/pill buttons. */
   rounded?: PaginationRounded
+  /** Button, label and icon scale. 'md' (default) keeps the original sizing;
+   * 'sm' is for tight spots like a dashboard card. */
+  size?: PaginationSize
   /** Joins Prev/page numbers/Next into one connected strip (collapsed
    * borders, rounding only on the outer edges) instead of separately
    * spaced buttons. The "..." ellipsis breaks the join, since it isn't
@@ -29,6 +33,34 @@ interface PaginationProps {
 }
 
 const DOTS = '...'
+
+/** One row per size so the button box, type scale and icons stay in step. */
+const SIZES = {
+  sm: {
+    box: 'size-7',
+    text: 'text-xs',
+    gap: 'gap-x-0.5',
+    pad: 'px-2 py-1',
+    icon: 14,
+    chevron: 14,
+  },
+  md: {
+    box: 'size-8',
+    text: 'text-sm',
+    gap: 'gap-x-1',
+    pad: 'px-3 py-2',
+    icon: 16,
+    chevron: 18,
+  },
+  lg: {
+    box: 'size-10',
+    text: 'text-base',
+    gap: 'gap-x-1.5',
+    pad: 'px-4 py-2.5',
+    icon: 18,
+    chevron: 20,
+  },
+} as const
 
 function getPageRange(
   currentPage: number,
@@ -80,10 +112,12 @@ export function Pagination({
   className = '',
   variant = 'primary',
   rounded = 'md',
+  size = 'md',
   grouped = false,
 }: PaginationProps) {
   const { t } = useTranslation()
   const pages = getPageRange(currentPage, totalPages, siblingCount)
+  const scale = SIZES[size]
 
   const goTo = (page: number) => {
     if (page < 1 || page > totalPages || page === currentPage) return
@@ -116,8 +150,8 @@ export function Pagination({
   }
 
   const pageButtonBase = grouped
-    ? 'flex size-8 items-center justify-center border text-sm transition-colors duration-150'
-    : `flex size-8 items-center justify-center ${cornerClass} text-sm transition-colors duration-150`
+    ? `flex ${scale.box} items-center justify-center border ${scale.text} transition-colors duration-150`
+    : `flex ${scale.box} items-center justify-center ${cornerClass} ${scale.text} transition-colors duration-150`
 
   const activeClasses =
     variant === 'outline'
@@ -131,7 +165,7 @@ export function Pagination({
       ? 'border-borderColor text-foreground hover:bg-surface-hover'
       : 'text-foreground hover:bg-surface-hover'
 
-  const arrowBase = `flex size-8 items-center justify-center border border-borderColor text-muted
+  const arrowBase = `flex ${scale.box} items-center justify-center border border-borderColor text-muted
     transition-colors duration-150
     hover:bg-surface-hover hover:text-foreground
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30
@@ -148,10 +182,10 @@ export function Pagination({
               <button
                 type="button"
                 aria-label="Toggle columns"
-                className="flex items-center gap-x-1.5 rounded-md border border-borderColor px-3 py-2 text-xs font-medium text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+                className={`flex items-center gap-x-1.5 rounded-md border border-borderColor ${scale.pad} ${scale.text} font-medium text-muted transition-colors hover:bg-surface-hover hover:text-foreground`}
               >
                 {perPage}
-                <ChevronDown size={18} />
+                <ChevronDown size={scale.chevron} />
               </button>
             }
             placement="bottom-start"
@@ -163,12 +197,12 @@ export function Pagination({
                   <button
                     key={index}
                     onClick={() => setPerPage(pageSize)}
-                    className="flex w-full items-center justify-between rounded-md p-2 text-start text-xs text-foreground hover:bg-surface-hover"
+                    className={`flex w-full items-center justify-between rounded-md p-2 text-start ${scale.text} text-foreground hover:bg-surface-hover`}
                   >
                     {pageSize}
                     {perPage === pageSize && (
                       <span>
-                        <Check size={18} />
+                        <Check size={scale.chevron} />
                       </span>
                     )}
                   </button>
@@ -176,7 +210,7 @@ export function Pagination({
               })}
             </div>
           </Popover>
-          <span className="text-sm font-medium text-foreground">
+          <span className={`${scale.text} font-medium text-foreground`}>
             {t('Rows per page')}
           </span>
         </div>
@@ -184,9 +218,9 @@ export function Pagination({
 
       <nav
         aria-label="Pagination"
-        className={`flex items-center ${grouped ? '' : 'gap-x-1'} ${className}`}
+        className={`flex items-center ${grouped ? '' : scale.gap} ${className}`}
       >
-        <span className="text-sm font-medium text-foreground me-2">
+        <span className={`${scale.text} font-medium text-foreground me-2`}>
           {t('Page')} {currentPage} {t('of')} {totalPages}
         </span>
 
@@ -197,14 +231,14 @@ export function Pagination({
           aria-label="Previous page"
           className={`${arrowBase} rtl:rotate-180 ${grouped ? roundLeft : cornerClass}`}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={scale.icon} />
         </button>
 
         {pages.map((page, index) =>
           page === DOTS ? (
             <span
               key={`dots-${index}`}
-              className="flex size-8 items-center justify-center text-sm text-muted"
+              className={`flex ${scale.box} items-center justify-center ${scale.text} text-muted`}
             >
               {DOTS}
             </span>
@@ -232,7 +266,7 @@ export function Pagination({
             grouped ? `${roundRight} -ml-px` : cornerClass
           }`}
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={scale.icon} />
         </button>
       </nav>
     </div>

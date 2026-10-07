@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import themeSlice from '../features/theme/slice/theme-slice'
+import dashboardSlice from '../features/dashboard/slice/dashboard-slice'
 
 export const store = configureStore({
   reducer: {
     themeConfig: themeSlice,
+    dashboard: dashboardSlice,
   },
 })
 
