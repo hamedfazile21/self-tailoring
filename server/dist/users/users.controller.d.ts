@@ -8,6 +8,7 @@ export declare class UsersController {
         password: string;
         id: number;
         name: string;
+        last_name: string;
         email: string;
         created_at: Date;
         updated_at: Date;

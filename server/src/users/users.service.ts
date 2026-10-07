@@ -34,7 +34,7 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    // TODO: Add another column like avatar last_name 
+    // TODO: Add another column like last_name 
     try {
       const { password, ...rest } = this.userRepository.create(createUserDto);
       const row = await this.userRepository.save({
