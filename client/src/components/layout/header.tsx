@@ -23,8 +23,11 @@ import i18n from '#/app/i18n'
 import { useNavigate } from '@tanstack/react-router'
 import { HeaderSearchTrigger, useHeaderSearch } from './header-search-trigger'
 import Popover from '../popover'
+import { signOut } from '#/lib/auth'
+import { useState } from 'react'
 const Header = () => {
   const { searchOpen, setSearchOpen } = useHeaderSearch()
+  const [signingOut, setSigningOut] = useState(false)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { themeMode, direction, language } = useAppSelector(
@@ -82,6 +85,17 @@ const Header = () => {
     },
   ]
 
+  const handelLogout = async () => {
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      await signOut()
+      await navigate({ to: '/login', search: { redirect: undefined } })
+    } finally {
+      setSigningOut(false)
+    }
+  }
+
   const profileData = [
     {
       className: `hover:bg-surface-hover`,
@@ -97,11 +111,15 @@ const Header = () => {
     },
     {
       className: `text-danger! hover:bg-danger/10`,
-      onClick: () => {},
-      title: 'Logout',
+      onClick: handelLogout,
+      disabled: signingOut,
+      title: signingOut ? 'Signing out...' : 'Logout',
       icon: <LogOut size={18} />,
     },
   ]
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
   return (
     <div
       className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-borderColor
@@ -200,15 +218,16 @@ const Header = () => {
           children={
             <div className="flex flex-col gap-y-1">
               <div className="w-full flex items-center gap-x-3 border-b border-borderColor  p-2 ">
-                <div>
-                  <img src={UserPNG} className="size-10 rounded-full" />
+                <div className="size-10 rounded-full bg-surface-hover flex items-center justify-center">
+                  {user.name.slice(0, 1).toUpperCase() || 'U'}
+                  {user.last_name.slice(0, 1).toUpperCase() || 'U'}
                 </div>
                 <div className="flex flex-col justify-start">
                   <p className="font-medium text-foreground text-md">
-                    Hamed Fazeli
+                    {user.name || 'User'} {user.last_name || 'Last Name'}
                   </p>
                   <p className="text-muted text-sm hover:text-blue-500 cursor-pointer hover:underline">
-                    hamed@gmail.com
+                    {user.email || 'hamed@gmail.com'}
                   </p>
                 </div>
               </div>
@@ -217,8 +236,10 @@ const Header = () => {
                   <button
                     key={index}
                     onClick={item.onClick}
+                    disabled={'disabled' in item ? item.disabled : false}
                     className={`group relative flex w-full items-center gap-x-1 rounded-lg p-2 text-start text-sm text-foreground
                   transition-colors duration-150
+                  disabled:cursor-not-allowed disabled:opacity-60
                   data-focus:outline-hidden ${item.className}`}
                   >
                     <span className="shrink-0 transition-transform duration-150 group-hover:scale-110">

@@ -1,28 +1,12 @@
 import Input from '#/components/input'
 import { useTranslation } from 'react-i18next'
 import { GlassBlob1, GlassBlob2 } from '../../../assets'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
-import { api, tokenStore } from '#/lib/api'
+import { signIn } from '#/lib/auth'
+import type { Credentials } from '#/lib/auth'
 
-interface LoginFormValues {
-  email: string
-  password: string
-}
-
-interface LoginUser {
-  id: number
-  name: string
-  last_name: string
-  email: string
-  created_at: string
-  updated_at: string
-}
-
-interface PostResponse {
-  status: number
-  data: { token: string; user: LoginUser }
-}
+type LoginFormValues = Credentials
 
 const LoginBasic = () => {
   const { t } = useTranslation()
@@ -35,15 +19,8 @@ const LoginBasic = () => {
     } as LoginFormValues,
 
     onSubmit: async ({ value }) => {
-      await api
-        .post<PostResponse, LoginFormValues>('/auth/login', value)
-        .then(async (result) => {
-          tokenStore.setTokens({ accessToken: result.data.token })
-
-          await (redirect
-            ? navigate({ href: redirect })
-            : navigate({ to: '/' }))
-        })
+      await signIn(value)
+      await (redirect ? navigate({ href: redirect }) : navigate({ to: '/' }))
     },
   })
   return (
@@ -141,15 +118,15 @@ const LoginBasic = () => {
           </button>
         </form>
 
-        {/* <p className="mt-6 text-center text-sm text-muted">
+        <p className="mt-6 text-center text-sm text-muted">
           {t("Don't have an account?")}{' '}
           <Link
-            to="/register-basic"
+            to="/register"
             className="font-medium text-primary hover:underline"
           >
             {t('Sign up')}
           </Link>
-        </p> */}
+        </p>
       </div>
     </div>
   )

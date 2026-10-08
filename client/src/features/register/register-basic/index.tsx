@@ -1,14 +1,13 @@
-import React, { useState } from 'react'
-import Github from '../../../assets/media/github'
-import Google from '../../../assets/media/google'
-import Linkedin from '../../../assets/media/linkedin'
+import { useState } from 'react'
 import CheckBox from '#/components/checkbox'
 import Input from '#/components/input'
 import { GlassBlob1, GlassBlob2 } from '../../../assets'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useTranslation } from 'react-i18next'
-import { showObjectToast } from '#/helper/toast-helper'
+import { toast } from 'sonner'
+import { api, isApiError } from '#/lib/api'
+import { signIn } from '#/lib/auth'
 
 interface RegisterForm {
   fist_name: string
@@ -19,9 +18,33 @@ interface RegisterForm {
   agreement: boolean
 }
 
+/** What `POST /users/create` accepts — the DTO rejects anything else (400). */
+interface CreateUserBody {
+  name: string
+  email: string
+  password: string
+  last_name: string
+}
+
+/**
+ * `create` answers with the entity as it looked *before* the insert, so there
+ * is no `id` or timestamp here — the ids come from the sign-in below.
+ */
+interface CreateUserResponse {
+  status: number
+  data: {
+    name: string
+    last_name: string
+    email: string
+  }
+}
+
 const RegisterBasic = () => {
   const { t } = useTranslation()
-  const { Field, handleSubmit } = useForm({
+  const navigate = useNavigate()
+  /** Server-side complaints about the email (e.g. already taken). */
+  const [emailTaken, setEmailTaken] = useState<string | null>(null)
+  const { Field, Subscribe, handleSubmit } = useForm({
     defaultValues: {
       fist_name: '',
       last_name: '',
@@ -31,7 +54,51 @@ const RegisterBasic = () => {
       agreement: false,
     } as RegisterForm,
     onSubmit: async ({ value }) => {
-      showObjectToast(t('Register From Submitted'), value)
+      setEmailTaken(null)
+      const email = value.email.trim()
+
+      try {
+        await api.post<CreateUserResponse, CreateUserBody>(
+          '/users/create',
+          {
+            name: value.fist_name.trim(),
+            last_name: value.last_name.trim(),
+            email,
+            password: value.password,
+          },
+          // Handled below: the server's duplicate-email code reads badly in a toast.
+          { silent: true },
+        )
+      } catch (error) {
+        if (!isApiError(error)) throw error
+
+        // A taken email belongs next to the field, not in a toast.
+        if (error.kind === 'conflict') {
+          setEmailTaken(t('That email is already registered'))
+        } else {
+          toast.error(error.message)
+        }
+        return
+      }
+
+      // `create` hands back no token, so trade the same credentials for one
+      // right away — the new account lands inside the app, not on /login.
+      try {
+        await signIn({ email, password: value.password }, { silent: true })
+      } catch (error) {
+        // The account exists; only the sign-in failed, so send them to /login
+        // rather than leaving them staring at a form they already submitted.
+        toast.error(
+          isApiError(error)
+            ? error.message
+            : t('Account created, but signing in failed.'),
+        )
+        await navigate({ to: '/login', search: { redirect: undefined } })
+        return
+      }
+
+      toast.success(t('Welcome! Your account is ready.'))
+      await navigate({ to: '/' })
     },
   })
   return (
@@ -66,6 +133,10 @@ const RegisterBasic = () => {
           <div className="flex gap-x-3">
             <Field
               name="fist_name"
+              validators={{
+                onSubmit: ({ value }) =>
+                  !value.trim() ? 'First name is required' : undefined,
+              }}
               children={(field) => (
                 <Input
                   label={t('First name')}
@@ -74,12 +145,21 @@ const RegisterBasic = () => {
                   onChange={(e) => field.handleChange(e.target.value)}
                   value={field.state.value}
                   type="text"
+                  error={
+                    field.state.meta.isTouched
+                      ? field.state.meta.errors.join(', ')
+                      : undefined
+                  }
                 />
               )}
             />
 
             <Field
               name="last_name"
+              validators={{
+                onSubmit: ({ value }) =>
+                  !value.trim() ? 'Last name is required' : undefined,
+              }}
               children={(field) => (
                 <Input
                   label={t('Last name')}
@@ -88,6 +168,11 @@ const RegisterBasic = () => {
                   onChange={(e) => field.handleChange(e.target.value)}
                   value={field.state.value}
                   type="text"
+                  error={
+                    field.state.meta.isTouched
+                      ? field.state.meta.errors.join(', ')
+                      : undefined
+                  }
                 />
               )}
             />
@@ -112,11 +197,15 @@ const RegisterBasic = () => {
                   type="email"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) => {
+                    setEmailTaken(null)
+                    field.handleChange(e.target.value)
+                  }}
                   error={
-                    field.state.meta.isTouched
+                    field.state.meta.isTouched &&
+                    field.state.meta.errors.length > 0
                       ? field.state.meta.errors.join(', ')
-                      : undefined
+                      : (emailTaken ?? undefined)
                   }
                 />
               </div>
@@ -126,8 +215,14 @@ const RegisterBasic = () => {
           <Field
             name="password"
             validators={{
+              // Mirrors the DTO's `@MinLength(6)`, so a doomed request is
+              // caught before it leaves the browser.
               onSubmit: ({ value }) =>
-                !value ? 'Password is required' : undefined,
+                !value
+                  ? 'Password is required'
+                  : value.length < 6
+                    ? 'Password must be at least 6 characters'
+                    : undefined,
             }}
             children={(field) => (
               <Input
@@ -135,8 +230,14 @@ const RegisterBasic = () => {
                 placeholder="••••••••"
                 id={field.name}
                 onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
                 value={field.state.value}
                 type="password"
+                error={
+                  field.state.meta.isTouched
+                    ? field.state.meta.errors.join(', ')
+                    : undefined
+                }
               />
             )}
           />
@@ -144,8 +245,12 @@ const RegisterBasic = () => {
           <Field
             name="confirm_password"
             validators={{
-              onSubmit: ({ value }) =>
-                !value ? 'Password is required' : undefined,
+              onSubmit: ({ value, fieldApi }) =>
+                !value
+                  ? 'Password is required'
+                  : value !== fieldApi.form.getFieldValue('password')
+                    ? 'Passwords do not match'
+                    : undefined,
             }}
             children={(field) => (
               <Input
@@ -153,68 +258,42 @@ const RegisterBasic = () => {
                 placeholder="••••••••"
                 id={field.name}
                 onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
                 value={field.state.value}
                 type="password"
+                error={
+                  field.state.meta.isTouched
+                    ? field.state.meta.errors.join(', ')
+                    : undefined
+                }
               />
             )}
           />
 
-          <Field
-            name="agreement"
-            children={(field) => (
-              <label
-                onClick={() => field.handleChange(!field.state.value)}
-                className="flex items-start gap-x-2 text-sm text-muted"
+          <Subscribe
+            selector={(state) => state.isSubmitting}
+            children={(isSubmitting) => (
+              <button
+                type="submit"
+                className="btn btn-primary mt-2 w-full!"
+                disabled={isSubmitting}
               >
-                <CheckBox
-                  checked={field.state.value}
-                  onChange={() => field.handleChange(!field.state.value)}
-                />
-                <span className="cursor-pointer">
-                  {t('I agree to the Terms of Service and Privacy Policy')}
-                </span>
-              </label>
+                {isSubmitting ? t('Creating account...') : t('Create account')}
+              </button>
             )}
           />
-
-          <button
-            type="submit"
-            className="btn btn-primary mt-2 w-full!"
-            disabled={false}
-          >
-            {t('Create account')}
-          </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted">
           {t('Already have an account?')}{' '}
           <Link
-            to="/login-cover"
+            search={{ redirect: '' }}
+            to="/login"
             className="font-medium text-primary hover:underline"
           >
             {t('Sign in')}
           </Link>
         </p>
-
-        <div className="mt-6">
-          <div className="flex items-center gap-x-3">
-            <div className="h-px flex-1 bg-borderColor" />
-            <p className="text-xs text-muted">{t('OR')}</p>
-            <div className="h-px flex-1 bg-borderColor" />
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-x-3">
-            <button type="button" aria-label="Sign up with GitHub">
-              <Github />
-            </button>
-            <button type="button" aria-label="Sign up with Google">
-              <Google />
-            </button>
-            <button type="button" aria-label="Sign up with LinkedIn">
-              <Linkedin />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
