@@ -9,10 +9,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Customer = void 0;
+exports.Customer = exports.CUSTOMER_STATUSES = void 0;
 const measurement_entity_1 = require("../../measurements/entities/measurement.entity");
 const order_entity_1 = require("../../orders/entities/order.entity");
 const typeorm_1 = require("typeorm");
+exports.CUSTOMER_STATUSES = ['active', 'inactive'];
 let Customer = class Customer {
     id;
     name;
@@ -40,7 +41,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
-        enum: ['active', 'inactive'],
+        enum: [...exports.CUSTOMER_STATUSES],
         default: 'active',
     }),
     __metadata("design:type", String)

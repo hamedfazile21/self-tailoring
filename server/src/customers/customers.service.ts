@@ -7,10 +7,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
+import type { FindOptionsWhere } from 'typeorm';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { Customer } from './entities/customer.entity';
+import {
+  CUSTOMER_STATUSES,
+  Customer,
+  type CustomerStatus,
+} from './entities/customer.entity';
 import { LoggedUser } from 'src/interface/global.interface';
 import { MeasurementsService } from 'src/measurements/measurements.service';
 
@@ -39,7 +44,30 @@ export class CustomersService {
     return this.findOne(savedCustomer.id);
   }
 
-  async findAll(page = 1, limit = 10, search = '') {
+  /**
+   * `?status=active`, or `?status=active,inactive` to keep both. An empty
+   * value means "no filter"; an unknown one is a client mistake, so it is
+   * rejected rather than quietly returning every customer.
+   */
+  private parseStatusFilter(status: string): CustomerStatus[] {
+    const values = status
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+
+    const unknown = values.filter(
+      (value) => !CUSTOMER_STATUSES.includes(value as CustomerStatus),
+    );
+    if (unknown.length > 0) {
+      throw new BadRequestException(
+        `Unknown status: ${unknown.join(', ')}. Expected ${CUSTOMER_STATUSES.join(' or ')}.`,
+      );
+    }
+
+    return [...new Set(values as CustomerStatus[])];
+  }
+
+  async findAll(page = 1, limit = 10, search = '', status = '') {
     const currentPage =
       Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
     const pageSize =
@@ -47,12 +75,24 @@ export class CustomersService {
         ? Math.min(Number(limit), 100)
         : 10;
     const normalizedSearch = search.trim();
-    const where = normalizedSearch
-      ? [
-          { name: Like(`%${normalizedSearch}%`) },
-          { phone: Like(`%${normalizedSearch}%`) },
-        ]
-      : undefined;
+    const statuses = this.parseStatusFilter(status);
+
+    // Merged into every branch of the search below, so the two conditions read
+    // as `status = ? AND (name LIKE ? OR phone LIKE ?)` — spreading one object
+    // is what keeps the `AND` from degrading into another `OR`.
+    const statusWhere: FindOptionsWhere<Customer> =
+      statuses.length === 0
+        ? {}
+        : { status: statuses.length === 1 ? statuses[0] : In(statuses) };
+
+    const where: FindOptionsWhere<Customer>[] | FindOptionsWhere<Customer> =
+      normalizedSearch
+        ? [
+            { ...statusWhere, name: Like(`%${normalizedSearch}%`) },
+            { ...statusWhere, phone: Like(`%${normalizedSearch}%`) },
+          ]
+        : statusWhere;
+
     const [data, total] = await this.repository.findAndCount({
       where,
       relations: { measurements: true },

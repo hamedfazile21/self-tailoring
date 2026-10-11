@@ -2,6 +2,8 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import ActionColumn from './action-column'
 import type { Customer, CustomerStatus } from '../slice/customers-types'
+import TaskSortPopover from './table-sort-popover'
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
 const columnHelper = createColumnHelper<Customer>()
 
@@ -53,7 +55,39 @@ export const columns = [
 
   columnHelper.accessor('name', {
     id: 'Name',
-    header: () => <HeaderLabel label="Name" />,
+    header: ({ column }) => {
+      const { t } = useTranslation()
+      return (
+        <div className="">
+          <TaskSortPopover
+            children={
+              <div className="hover:bg-surface-hover cursor-pointer py-1.5 px-2 rounded-lg flex items-center gap-x-1 w-fit ">
+                <span className="">{t('Name')}</span>
+                <span>
+                  {column.getIsSorted() === 'desc' && (
+                    <ArrowUp className="text-muted" size={16} />
+                  )}
+                  {column.getIsSorted() === 'asc' && (
+                    <ArrowDown className="text-muted" size={16} />
+                  )}
+                  {column.getIsSorted() === false && (
+                    <ChevronsUpDown className="text-muted" size={16} />
+                  )}
+                </span>
+              </div>
+            }
+            sortBy={column.getIsSorted() ?? 'hidden'}
+            setSortBy={(value) => {
+              if (value === 'hidden') {
+                column.getIsVisible() && column.toggleVisibility(false)
+              }
+
+              column.toggleSorting(value === 'asc')
+            }}
+          />
+        </div>
+      )
+    },
     cell: (info) => (
       <span className="text-system font-medium text-foreground">
         {info.getValue()}
@@ -64,7 +98,39 @@ export const columns = [
 
   columnHelper.accessor('last_name', {
     id: 'Last Name',
-    header: () => <HeaderLabel label="Last name" />,
+    header: ({ column }) => {
+      const { t } = useTranslation()
+      return (
+        <div className="">
+          <TaskSortPopover
+            children={
+              <div className="hover:bg-surface-hover cursor-pointer py-1.5 px-2 rounded-lg flex items-center gap-x-1 w-fit ">
+                <span className="">{t('Last Name')}</span>
+                <span>
+                  {column.getIsSorted() === 'desc' && (
+                    <ArrowUp className="text-muted" size={16} />
+                  )}
+                  {column.getIsSorted() === 'asc' && (
+                    <ArrowDown className="text-muted" size={16} />
+                  )}
+                  {column.getIsSorted() === false && (
+                    <ChevronsUpDown className="text-muted" size={16} />
+                  )}
+                </span>
+              </div>
+            }
+            sortBy={column.getIsSorted() ?? 'hidden'}
+            setSortBy={(value) => {
+              if (value === 'hidden') {
+                column.getIsVisible() && column.toggleVisibility(false)
+              }
+
+              column.toggleSorting(value === 'asc')
+            }}
+          />
+        </div>
+      )
+    },
     cell: (info) => {
       // Nullable on the server, so an empty string counts as "not given" too.
       const lastName = info.getValue()

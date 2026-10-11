@@ -5,7 +5,7 @@ export declare class CustomersController {
     private readonly customersService;
     constructor(customersService: CustomersService);
     create(createCustomerDto: CreateCustomerDto): Promise<import("./entities/customer.entity").Customer>;
-    findAll(page?: string, limit?: string, search?: string): Promise<{
+    findAll(page?: string, limit?: string, search?: string, status?: string): Promise<{
         data: import("./entities/customer.entity").Customer[];
         pagination: {
             page: number;

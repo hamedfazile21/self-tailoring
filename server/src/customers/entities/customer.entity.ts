@@ -11,6 +11,11 @@ import {
   OneToMany,
 } from 'typeorm';
 
+/** The only values the `status` column accepts, shared with the query filter. */
+export const CUSTOMER_STATUSES = ['active', 'inactive'] as const;
+
+export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
+
 @Entity('customers')
 export class Customer {
   @PrimaryGeneratedColumn({ type: 'int' })
@@ -24,10 +29,10 @@ export class Customer {
 
   @Column({
     type: 'enum',
-    enum: ['active', 'inactive'],
+    enum: [...CUSTOMER_STATUSES],
     default: 'active',
   })
-  status!: 'active' | 'inactive';
+  status!: CustomerStatus;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   last_name?: string;

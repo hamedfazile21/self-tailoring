@@ -15,12 +15,10 @@ const Customer = () => {
       <div className="flex items-center justify-between">
         <div className="mb-8">
           <h1 className="text-xl font-semibold text-foreground">
-            {t('Tasks')}
+            {t('Customer')}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            {t(
-              'View, search, and manage every task assigned across your team.',
-            )}
+            {t('View, search, and manage every Customer.')}
           </p>
         </div>
         <div>
@@ -31,7 +29,7 @@ const Customer = () => {
               // setCurrentRow(null)
             }}
           >
-            {t('New Task')}
+            {t('New Customer')}
           </button>
         </div>
       </div>

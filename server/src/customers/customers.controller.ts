@@ -31,11 +31,14 @@ export class CustomersController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    /** `active`, `inactive`, or `active,inactive`. Omit it for every customer. */
+    @Query('status') status?: string,
   ) {
     return this.customersService.findAll(
       page ? Number(page) : 1,
       limit ? Number(limit) : 10,
       search ?? '',
+      status ?? '',
     );
   }
 
@@ -60,4 +63,3 @@ export class CustomersController {
     return this.customersService.remove(ids);
   }
 }
-  

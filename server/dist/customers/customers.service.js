@@ -37,18 +37,33 @@ let CustomersService = class CustomersService {
         }
         return this.findOne(savedCustomer.id);
     }
-    async findAll(page = 1, limit = 10, search = '') {
+    parseStatusFilter(status) {
+        const values = status
+            .split(',')
+            .map((value) => value.trim().toLowerCase())
+            .filter(Boolean);
+        const unknown = values.filter((value) => !customer_entity_1.CUSTOMER_STATUSES.includes(value));
+        if (unknown.length > 0) {
+            throw new common_1.BadRequestException(`Unknown status: ${unknown.join(', ')}. Expected ${customer_entity_1.CUSTOMER_STATUSES.join(' or ')}.`);
+        }
+        return [...new Set(values)];
+    }
+    async findAll(page = 1, limit = 10, search = '', status = '') {
         const currentPage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1;
         const pageSize = Number.isInteger(Number(limit)) && Number(limit) > 0
             ? Math.min(Number(limit), 100)
             : 10;
         const normalizedSearch = search.trim();
+        const statuses = this.parseStatusFilter(status);
+        const statusWhere = statuses.length === 0
+            ? {}
+            : { status: statuses.length === 1 ? statuses[0] : (0, typeorm_2.In)(statuses) };
         const where = normalizedSearch
             ? [
-                { name: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
-                { phone: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
+                { ...statusWhere, name: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
+                { ...statusWhere, phone: (0, typeorm_2.Like)(`%${normalizedSearch}%`) },
             ]
-            : undefined;
+            : statusWhere;
         const [data, total] = await this.repository.findAndCount({
             where,
             relations: { measurements: true },

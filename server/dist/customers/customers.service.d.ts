@@ -8,7 +8,8 @@ export declare class CustomersService {
     private readonly repository;
     constructor(measurementsService: MeasurementsService, repository: Repository<Customer>);
     create(createCustomerDto: CreateCustomerDto): Promise<Customer>;
-    findAll(page?: number, limit?: number, search?: string): Promise<{
+    private parseStatusFilter;
+    findAll(page?: number, limit?: number, search?: string, status?: string): Promise<{
         data: Customer[];
         pagination: {
             page: number;
