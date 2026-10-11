@@ -13,7 +13,7 @@ export const customerCode = (id: number) => `CUS-${id}`
 /** `inactive` stays grey on purpose — it is a state, not a failure. */
 const statusStyles: Record<CustomerStatus, string> = {
   active: 'bg-success/10 text-success',
-  inactive: 'bg-surface-hover text-muted',
+  inactive: 'bg-danger/10 text-danger',
 }
 
 /**

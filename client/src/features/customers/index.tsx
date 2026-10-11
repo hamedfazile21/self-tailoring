@@ -2,15 +2,13 @@ import { useAppSelector } from '#/hooks/redux'
 import React from 'react'
 import CustomersTable from './components/customers-table'
 import { useTranslation } from 'react-i18next'
+import CustomerDialog from './components/customers-dialog'
+import { useCustomer } from './components/customers-provider'
 
 const Customer = () => {
   const { t } = useTranslation('')
-  const { list } = useAppSelector((state) => state.customers)
-  console.log(list)
+  const { setOpen, setCurrentRow } = useCustomer()
   return (
-    // <div>
-    //   <CustomersTable />
-    // </div>
     <div className="relative">
       <div className="flex items-center justify-between">
         <div className="mb-8">
@@ -25,8 +23,8 @@ const Customer = () => {
           <button
             className="btn btn-primary"
             onClick={() => {
-              //  / setOpen('create-task')
-              // setCurrentRow(null)
+              setOpen('create-customer')
+              setCurrentRow(null)
             }}
           >
             {t('New Customer')}
@@ -36,7 +34,7 @@ const Customer = () => {
       <div className="card w-full overflow-hidden p-0!">
         <CustomersTable />
       </div>
-      {/* <TaskDialog /> */}
+      <CustomerDialog />
     </div>
   )
 }

@@ -21,7 +21,7 @@ export const fetchCustomers = createAsyncThunk<
   Partial<CustomersQuery> | undefined,
   { state: RootState; rejectValue: string }
 >('customers/fetchAll', async (args, { getState, rejectWithValue }) => {
-  const { page, limit, search } = {
+  const { page, limit, search, status } = {
     ...getState().customers.filters,
     ...args,
   }
@@ -30,7 +30,14 @@ export const fetchCustomers = createAsyncThunk<
     // Left wrapped on purpose: `pagination` is a sibling of `data` on the
     // envelope, and the pager needs `total`/`totalPages` out of it.
     return await api.get<Paginated<Customer>>('/customers', {
-      params: { page, limit, search: search || undefined },
+      params: {
+        page,
+        limit,
+        search: search || undefined,
+        // Sending every status is the same as sending none, so the param is
+        // dropped when nothing is filtered out.
+        status: status.length > 0 ? status.join(',') : undefined,
+      },
       silent: true,
     })
   } catch (error) {

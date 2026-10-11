@@ -13,6 +13,14 @@ export const selectCustomersFilters = (state: RootState) =>
 export const selectCustomersSearch = (state: RootState) =>
   state.customers.filters.search
 
+export const selectCustomersStatusFilter = (state: RootState) =>
+  state.customers.filters.status
+
+/** Drives the "clear filters" affordance in the toolbar. */
+export const selectCustomersFiltered = (state: RootState) =>
+  state.customers.filters.status.length > 0 ||
+  state.customers.filters.search.length > 0
+
 export const selectCurrentCustomer = (state: RootState) =>
   state.customers.current
 

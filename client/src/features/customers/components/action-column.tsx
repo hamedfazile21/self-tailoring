@@ -16,7 +16,7 @@ interface props {
  */
 const ActionColumn: FC<props> = ({ row }) => {
   const { t } = useTranslation()
-  const { setOpen } = useCustomer()
+  const { setOpen, setCurrentRow } = useCustomer()
 
   return (
     <div className="flex justify-end!">
@@ -38,8 +38,8 @@ const ActionColumn: FC<props> = ({ row }) => {
             type="button"
             className="flex items-center gap-x-2 rounded-md px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-surface-hover"
             onClick={() => {
-              //   setCurrentRow(row.original)
-              //   setOpen('edit-customer')
+              setCurrentRow(row.original)
+              setOpen('edit-customer')
             }}
           >
             <SquarePen size={15} />

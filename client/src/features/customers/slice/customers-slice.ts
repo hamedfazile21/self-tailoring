@@ -3,6 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import type { PageMeta } from '#/lib/api'
 import type {
   Customer,
+  CustomerStatus,
   CustomersQuery,
   Panel,
   RequestStatus,
@@ -17,7 +18,15 @@ import {
 
 interface CustomersState {
   /** The table: one page of rows plus the meta the pager needs. */
-  list: Panel<Array<Customer>> & { pagination: PageMeta }
+  list: Panel<Array<Customer>> & {
+    pagination: PageMeta
+    /**
+     * The newest `fetchCustomers` dispatch. Debounced typing can leave two
+     * requests in flight, and they are not guaranteed to come back in order —
+     * anything but the latest is dropped on arrival.
+     */
+    requestId: string | null
+  }
   /** The row being viewed or edited, loaded on its own by id. */
   current: Panel<Customer | null>
   /** Query the next `fetchCustomers` uses unless the call overrides it. */
@@ -44,9 +53,10 @@ const initialState: CustomersState = {
     status: 'idle',
     error: null,
     pagination: initialPagination,
+    requestId: null,
   },
   current: { data: null, status: 'idle', error: null },
-  filters: { page: 1, limit: CUSTOMERS_PAGE_SIZE, search: '' },
+  filters: { page: 1, limit: CUSTOMERS_PAGE_SIZE, search: '', status: [] },
   mutation: { status: 'idle', error: null },
   selectedIds: [],
 }
@@ -62,6 +72,14 @@ const customersSlice = createSlice({
     },
     setPage(state, action: PayloadAction<number>) {
       state.filters.page = action.payload
+    },
+    /**
+     * Replaces the status filter; an empty array means every status. Back to
+     * page 1, because page 4 of the old result set rarely exists in the new one.
+     */
+    setStatus(state, action: PayloadAction<Array<CustomerStatus>>) {
+      state.filters.status = action.payload
+      state.filters.page = 1
     },
     setLimit(state, action: PayloadAction<number>) {
       state.filters.limit = action.payload
@@ -95,11 +113,16 @@ const customersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchCustomers.pending, (state) => {
+      .addCase(fetchCustomers.pending, (state, action) => {
         state.list.status = 'loading'
         state.list.error = null
+        state.list.requestId = action.meta.requestId
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
+        // A superseded response: a newer search or page is already on its way,
+        // so these rows would contradict the filters the toolbar is showing.
+        if (action.meta.requestId !== state.list.requestId) return
+
         state.list.status = 'succeeded'
         state.list.data = action.payload.data
         state.list.pagination = action.payload.pagination
@@ -112,6 +135,8 @@ const customersSlice = createSlice({
         state.selectedIds = state.selectedIds.filter((id) => visible.has(id))
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
+        if (action.meta.requestId !== state.list.requestId) return
+
         state.list.status = 'failed'
         state.list.error = action.payload ?? 'Could not load the customers.'
       })
@@ -223,6 +248,7 @@ const customersSlice = createSlice({
 export const {
   setSearch,
   setPage,
+  setStatus,
   setLimit,
   toggleSelected,
   selectAllOnPage,

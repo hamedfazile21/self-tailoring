@@ -1,36 +1,83 @@
 import Input from '#/components/input'
 import type { Table } from '@tanstack/react-table'
-import React, { type FC } from 'react'
+import { useEffect, useState } from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Customer } from '../slice/customers-types'
+import type { Customer, CustomerStatus } from '../slice/customers-types'
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react'
 import Popover from '#/components/popover'
 import CheckBox from '#/components/checkbox'
+import { useAppDispatch, useAppSelector } from '#/hooks/redux'
+import { setSearch, setStatus } from '../slice/customers-slice'
+import { fetchCustomers } from '../slice/customers-action'
+import {
+  selectCustomersSearch,
+  selectCustomersStatusFilter,
+} from '../slice/customers-selectors'
 
 interface props {
   table: Table<Customer>
 }
 
-const statusOptions = ['Active', 'In Active'] as const
+/** `value` goes to the API, `label` is the translation key shown in the menu. */
+const statusOptions: Array<{ value: CustomerStatus; label: string }> = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
+const labelOf = (status: CustomerStatus) =>
+  statusOptions.find((option) => option.value === status)?.label ?? status
+
+/** How long typing has to stop before the search is sent. */
+const SEARCH_DEBOUNCE_MS = 400
 
 const TableToolbar: FC<props> = ({ table }) => {
   const { t } = useTranslation('')
+  const dispatch = useAppDispatch()
 
-  const selectedStatuses =
-    (table.getColumn('status')?.getFilterValue() as string[] | undefined) ?? []
+  // The filter lives in the store, not in the table: the server decides which
+  // rows come back, so a TanStack column filter would only ever narrow the one
+  // page already loaded.
+  const selectedStatuses = useAppSelector(selectCustomersStatusFilter)
 
-  const statusCounts = table
-    .getPreFilteredRowModel()
-    .rows.reduce<Record<string, number>>((counts, row) => {
-      const status = String(row.getValue('status'))
-      counts[status] = (counts[status] ?? 0) + 1
-      return counts
-    }, {})
+  const applyStatuses = (next: Array<CustomerStatus>) => {
+    dispatch(setStatus(next))
+    // `setStatus` has already reset the page, so the thunk picks up page 1.
+    void dispatch(fetchCustomers())
+  }
+
+  /**
+   * The input is local state so it stays responsive; the store only hears
+   * about it once typing pauses. Seeded from the store so a remount — or a
+   * `search` restored from the URL later — shows the term that is in effect.
+   */
+  const appliedSearch = useAppSelector(selectCustomersSearch)
+  const [term, setTerm] = useState(appliedSearch)
+
+  useEffect(() => {
+    // Already the term in effect: the mount, or the echo of our own dispatch.
+    if (term === appliedSearch) return
+
+    const timer = setTimeout(() => {
+      dispatch(setSearch(term))
+      // `setSearch` resets the page — searching from page 4 would otherwise ask
+      // for a page the new, smaller result set may not have.
+      void dispatch(fetchCustomers())
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [term, appliedSearch, dispatch])
 
   return (
     <div className="flex items-center justify-between border-b border-borderColor p-4">
-      <div className='flex items-center gap-x-5'>
-        <Input className="py-1.5!" placeholder={t('Search')} />
+      <div className="flex items-center gap-x-5">
+        <Input
+          className="py-1.5!"
+          placeholder={t('Search')}
+          value={term}
+          onChange={(event) => setTerm(event.target.value)}
+          aria-label={t('Search customers')}
+        />
 
         <Popover
           className="w-48 p-1!"
@@ -48,13 +95,13 @@ const TableToolbar: FC<props> = ({ table }) => {
                   {selectedStatuses.length} {t('Selected')}
                 </span>
               ) : (
-                selectedStatuses.map((item, index) => {
+                selectedStatuses.map((status) => {
                   return (
                     <span
-                      key={index}
-                      className={`text-xs bg-muted/20 rounded-lg px-2 py-0.5 ${item === 'In Progress' ? 'w-24' : 'w-fit'}`}
+                      key={status}
+                      className="text-xs bg-muted/20 rounded-lg px-2 py-0.5 w-fit"
                     >
-                      {item}
+                      {t(labelOf(status))}
                     </span>
                   )
                 })
@@ -68,20 +115,22 @@ const TableToolbar: FC<props> = ({ table }) => {
           <div className="flex flex-col gap-y-1 ">
             {statusOptions.length > 0 ? (
               <>
-                {statusOptions.map((status) => {
-                  const isSelected = selectedStatuses.includes(status)
+                {statusOptions.map(({ value, label }) => {
+                  const isSelected = selectedStatuses.includes(value)
 
                   return (
                     <button
-                      key={status}
+                      key={value}
                       type="button"
-                      onClick={() => {
-                        const nextStatuses = isSelected
-                          ? selectedStatuses.filter((value) => value !== status)
-                          : [...selectedStatuses, status]
-
-                        table.getColumn('status')?.setFilterValue(nextStatuses)
-                      }}
+                      onClick={() =>
+                        applyStatuses(
+                          isSelected
+                            ? selectedStatuses.filter(
+                                (status) => status !== value,
+                              )
+                            : [...selectedStatuses, value],
+                        )
+                      }
                       className="flex items-center gap-x-1.5 text-foreground hover:bg-surface-hover px-3 py-1.5 rounded-md w-full text-start text-system"
                     >
                       <div className="flex items-center justify-between w-full">
@@ -91,14 +140,11 @@ const TableToolbar: FC<props> = ({ table }) => {
                             checked={isSelected}
                             onChange={() => undefined}
                           />
-                          {/* <span className="text-muted">
-                            {statusIcon[status]}
-                          </span> */}
-                          <span>{status}</span>
+                          <span>{t(label)}</span>
                         </div>
-                        <div>
-                          <p className="text-xs">{statusCounts[status] ?? 0}</p>
-                        </div>
+                        {/* No count here on purpose: the client only holds the
+                            current page, so it cannot say how many customers
+                            carry a status. That needs a facet from the API. */}
                       </div>
                     </button>
                   )
@@ -107,9 +153,7 @@ const TableToolbar: FC<props> = ({ table }) => {
                   <div className="border-t border-borderColor p-1">
                     <button
                       type="button"
-                      onClick={() =>
-                        table.getColumn('status')?.setFilterValue([])
-                      }
+                      onClick={() => applyStatuses([])}
                       className="flex items-center gap-x-1.5 text-foreground hover:bg-surface-hover px-3 py-1.5 rounded-md w-full text-system"
                     >
                       {t('Clear Filters')}

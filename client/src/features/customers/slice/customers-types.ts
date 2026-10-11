@@ -39,7 +39,7 @@ export interface Customer {
    * Present on `findAll`/`findOne`/`create`, which load the relation. `update`
    * echoes back whatever was loaded, so treat it as possibly empty.
    */
-  measurements: Array<CustomerMeasurement>
+  measurements: Array<CustomerMeasurement> | null
   created_at: string
   updated_at: string
 }
@@ -94,6 +94,11 @@ export interface CustomersQuery {
   limit: number
   /** Matched against `name` and `phone` with a `LIKE %…%`. */
   search: string
+  /**
+   * Statuses to keep. Empty means every status — the server reads them
+   * comma-separated and 400s on a value outside the enum.
+   */
+  status: Array<CustomerStatus>
 }
 
 export type RequestStatus = 'idle' | 'loading' | 'succeeded' | 'failed'

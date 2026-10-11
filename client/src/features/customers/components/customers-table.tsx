@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import type { PaginationState, Updater } from '@tanstack/react-table'
@@ -10,6 +11,7 @@ import { customersColumns } from './customers-column'
 import TableToolbar from './table-toolbar'
 import Pagination from '#/components/pagination'
 import { fetchCustomers } from '../slice/customers-action'
+import { BarLoader } from 'react-spinners'
 
 const CustomersTable = () => {
   const dispatch = useAppDispatch()
@@ -52,42 +54,42 @@ const CustomersTable = () => {
     onPaginationChange: requestPage,
     state: {
       pagination,
-      //   rowSelection,
-      //   globalFilter,
-      //   sorting,
-      //   columnVisibility,
-      //   columnFilters,
     },
     enableRowSelection: true,
-    // onRowSelectionChange: setRowSelection,
     defaultColumn: {
       minSize: 0,
       size: 0,
     },
-    // search
-    // onGlobalFilterChange: setGlobalFilter,
-    // globalFilterFn: (row, _columnId, filterValue) => {
-    //   const search = String(filterValue).toLowerCase()
-    //   return Object.keys(row.original as object).some((key) => {
-    //     const value = row.getValue(key)
-    //     return value != null && String(value).toLowerCase().includes(search)
-    //   })
-    // },
-    // getFilteredRowModel: getFilteredRowModel(),
-
-    // // sorting
-    // onSortingChange: setSorting,
-    // getSortedRowModel: getSortedRowModel(),
-
-    // //visible
-    // onColumnVisibilityChange: setColumnVisibility,
-    // onColumnFiltersChange: setColumnFilters,
+    getSortedRowModel: getSortedRowModel(),
   })
+
+  const columnCount = table.getVisibleLeafColumns().length
+
+  /**
+   * Nothing to dim yet — the first load, or a search that cleared the rows.
+   * Skeletons stand in for the page so the layout does not collapse and then
+   * jump back when the rows arrive.
+   */
+  const showSkeleton =
+    (list.status === 'loading' || list.status === 'idle') &&
+    list.data.length === 0
+
+  /** Paging or filtering with rows already on screen: those rows just dim. */
+  const refetching = list.status === 'loading' && !showSkeleton
 
   return (
     <div>
       <TableToolbar table={table} />
-      <div className="table-wrapper">
+      <div className="table-wrapper relative">
+        {refetching && (
+          <div
+            role="status"
+            aria-label="Loading customers"
+            className="absolute inset-x-0 top-0 z-10"
+          >
+            <BarLoader color="var(--color-primary)" width="100%" height={2} />
+          </div>
+        )}
         <table className="w-full text-left text-sm">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -121,9 +123,36 @@ const CustomersTable = () => {
               list.status === 'loading' ? 'opacity-50' : 'opacity-100'
             }`}
           >
-            {table.getRowModel().rows.length === 0 ? (
+            {showSkeleton ? (
+              // One skeleton per row the page will hold, so the table keeps its
+              // height from the first paint to the real data.
+              Array.from({ length: list.pagination.limit }, (_, rowIndex) => (
+                <tr key={`skeleton-${rowIndex}`} className="table-body-row">
+                  {Array.from({ length: columnCount }, (_, cellIndex) => (
+                    <td key={cellIndex} className="table-body-cell">
+                      <div className="h-4 w-full animate-pulse rounded bg-surface-hover" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : list.status === 'failed' ? (
               <tr>
-                <td colSpan={table.getAllColumns().length}>
+                <td colSpan={columnCount}>
+                  <div className="table-empty-state">
+                    <p>{list.error ?? 'Could not load the customers.'}</p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary-outline btn-sm"
+                      onClick={() => void dispatch(fetchCustomers())}
+                    >
+                      Try again
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ) : table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td colSpan={columnCount}>
                   <div className="table-empty-state">No results found.</div>
                 </td>
               </tr>
