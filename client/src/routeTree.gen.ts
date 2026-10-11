@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutCustomersIndexRouteImport } from './routes/_layout/customers/index'
 import { Route as AuthRegisterIndexRouteImport } from './routes/_auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
 
@@ -21,6 +22,11 @@ const LayoutRouteRoute = LayoutRouteRouteImport.update({
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LayoutRouteRoute,
+} as any)
+const LayoutCustomersIndexRoute = LayoutCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
   getParentRoute: () => LayoutRouteRoute,
 } as any)
 const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
@@ -38,11 +44,13 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/login/': typeof AuthLoginIndexRoute
   '/register/': typeof AuthRegisterIndexRoute
+  '/customers/': typeof LayoutCustomersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/login': typeof AuthLoginIndexRoute
   '/register': typeof AuthRegisterIndexRoute
+  '/customers': typeof LayoutCustomersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,14 +58,20 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/_auth/login/': typeof AuthLoginIndexRoute
   '/_auth/register/': typeof AuthRegisterIndexRoute
+  '/_layout/customers/': typeof LayoutCustomersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login/' | '/register/'
+  fullPaths: '/' | '/login/' | '/register/' | '/customers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register'
+  to: '/' | '/login' | '/register' | '/customers'
   id:
-    '__root__' | '/_layout' | '/_layout/' | '/_auth/login/' | '/_auth/register/'
+    | '__root__'
+    | '/_layout'
+    | '/_layout/'
+    | '/_auth/login/'
+    | '/_auth/register/'
+    | '/_layout/customers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -82,6 +96,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/_layout/customers/': {
+      id: '/_layout/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof LayoutCustomersIndexRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
     '/_auth/register/': {
       id: '/_auth/register/'
       path: '/register'
@@ -101,10 +122,12 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutCustomersIndexRoute: typeof LayoutCustomersIndexRoute
 }
 
 const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutCustomersIndexRoute: LayoutCustomersIndexRoute,
 }
 
 const LayoutRouteRouteWithChildren = LayoutRouteRoute._addFileChildren(

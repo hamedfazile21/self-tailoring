@@ -27,13 +27,13 @@ export const sidebar_data: SidebarItem[] = [
         href: '/',
         children: [],
       },
-      // {
-      //   id: 'customers',
-      //   title: 'Customers',
-      //   icon: UserCheck,
-      //   href: '/customers',
-      //   children: [],
-      // },
+      {
+        id: 'customers',
+        title: 'Customers',
+        icon: UserCheck,
+        href: '/customers',
+        children: [],
+      },
     ],
   },
 ]
