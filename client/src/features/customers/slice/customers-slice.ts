@@ -1,16 +1,11 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { api, normalizeError } from '#/lib/api'
+import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import type { PageMeta, Paginated } from '#/lib/api'
-import type { RootState } from '#/app/store'
+import type { PageMeta } from '#/lib/api'
 import type {
-  CreateCustomerPayload,
   Customer,
   CustomersQuery,
-  DeleteCustomersResult,
   Panel,
   RequestStatus,
-  UpdateCustomerArgs,
 } from './customers-types'
 import {
   createCustomer,
