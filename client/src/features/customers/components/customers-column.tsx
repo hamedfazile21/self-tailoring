@@ -52,6 +52,7 @@ export const columns = [
   }),
 
   columnHelper.accessor('name', {
+    id: 'Name',
     header: () => <HeaderLabel label="Name" />,
     cell: (info) => (
       <span className="text-system font-medium text-foreground">
@@ -62,6 +63,7 @@ export const columns = [
   }),
 
   columnHelper.accessor('last_name', {
+    id: 'Last Name',
     header: () => <HeaderLabel label="Last name" />,
     cell: (info) => {
       // Nullable on the server, so an empty string counts as "not given" too.
@@ -78,6 +80,7 @@ export const columns = [
   }),
 
   columnHelper.accessor('phone', {
+    id: 'Phone',
     header: () => <HeaderLabel label="Phone" />,
     cell: (info) => (
       <span className="text-system text-foreground" dir="ltr">
@@ -88,6 +91,7 @@ export const columns = [
   }),
 
   columnHelper.accessor('status', {
+    id: 'Status',
     header: () => <HeaderLabel label="Status" />,
     cell: (info) => <StatusBadge status={info.getValue()} />,
     footer: (info) => info.column.id,

@@ -86,7 +86,7 @@ const CustomersTable = () => {
 
   return (
     <div>
-      <TableToolbar />
+      <TableToolbar table={table} />
       <div className="table-wrapper">
         <table className="w-full text-left text-sm">
           <thead>
