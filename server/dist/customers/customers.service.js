@@ -71,6 +71,7 @@ let CustomersService = class CustomersService {
             skip: (currentPage - 1) * pageSize,
             take: pageSize,
         });
+        data.forEach((customer) => this.sortMeasurements(customer));
         return {
             data,
             pagination: {
@@ -80,6 +81,10 @@ let CustomersService = class CustomersService {
                 totalPages: Math.ceil(total / pageSize),
             },
         };
+    }
+    sortMeasurements(customer) {
+        customer.measurements?.sort((a, b) => b.id - a.id);
+        return customer;
     }
     async findOne(id) {
         const customer = await this.repository.findOne({
@@ -91,12 +96,29 @@ let CustomersService = class CustomersService {
                 status: common_1.HttpStatus.NOT_FOUND,
                 data: ['Customer Not Found'],
             });
-        return customer;
+        return this.sortMeasurements(customer);
     }
     async update(id, updateCustomerDto) {
+        const { measurement, ...customerData } = updateCustomerDto;
         const customer = await this.findOne(id);
-        Object.assign(customer, updateCustomerDto);
-        return this.repository.save(customer);
+        Object.assign(customer, customerData);
+        await this.repository.save(customer);
+        if (measurement) {
+            const current = customer.measurements?.at(0);
+            if (current) {
+                await this.measurementsService.update(current.id, {
+                    ...measurement,
+                    customer_id: id,
+                });
+            }
+            else {
+                await this.measurementsService.create({
+                    ...measurement,
+                    customer_id: id,
+                });
+            }
+        }
+        return this.findOne(id);
     }
     async remove(ids) {
         if (!Array.isArray(ids) ||

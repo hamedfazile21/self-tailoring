@@ -101,6 +101,8 @@ export class CustomersService {
       take: pageSize,
     });
 
+    data.forEach((customer) => this.sortMeasurements(customer));
+
     return {
       data,
       pagination: {
@@ -110,6 +112,20 @@ export class CustomersService {
         totalPages: Math.ceil(total / pageSize),
       },
     };
+  }
+
+  /**
+   * A customer's newest measurement is the one the app treats as current, so
+   * every read has to agree on which that is — `measurements[0]`.
+   *
+   * Sorted here rather than through `order`, because `findAll` pages with
+   * `skip`/`take` and ordering a `OneToMany` underneath pagination is where
+   * TypeORM turns awkward. One rule, applied the same way on both reads, over
+   * a handful of rows.
+   */
+  private sortMeasurements(customer: Customer) {
+    customer.measurements?.sort((a, b) => b.id - a.id);
+    return customer;
   }
 
   async findOne(id: number) {
@@ -122,13 +138,45 @@ export class CustomersService {
         status: HttpStatus.NOT_FOUND,
         data: ['Customer Not Found'],
       });
-    return customer;
+    return this.sortMeasurements(customer);
   }
 
+  /**
+   * `measurement` is pulled out and handled on its own: it is not a column on
+   * `customers`, so leaving it in the `Object.assign` below would let `save`
+   * discard it without a word.
+   *
+   * Sending one overwrites the customer's current measurement, or creates
+   * their first if they have none. Omitting it leaves their measurements
+   * untouched.
+   */
   async update(id: number, updateCustomerDto: UpdateCustomerDto) {
+    const { measurement, ...customerData } = updateCustomerDto;
+
     const customer = await this.findOne(id);
-    Object.assign(customer, updateCustomerDto as Partial<Customer>);
-    return this.repository.save(customer);
+    Object.assign(customer, customerData as Partial<Customer>);
+    await this.repository.save(customer);
+
+    if (measurement) {
+      const current = customer.measurements?.at(0);
+
+      if (current) {
+        await this.measurementsService.update(current.id, {
+          ...measurement,
+          customer_id: id,
+        });
+      } else {
+        await this.measurementsService.create({
+          ...measurement,
+          customer_id: id,
+        });
+      }
+    }
+
+    // Re-read rather than returning the entity above: it still holds the
+    // relation as it looked before the write, and the client merges whatever
+    // comes back straight into its row.
+    return this.findOne(id);
   }
 
   async remove(ids: number[]) {

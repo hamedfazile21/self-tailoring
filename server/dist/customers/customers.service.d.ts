@@ -18,6 +18,7 @@ export declare class CustomersService {
             totalPages: number;
         };
     }>;
+    private sortMeasurements;
     findOne(id: number): Promise<Customer>;
     update(id: number, updateCustomerDto: UpdateCustomerDto): Promise<Customer>;
     remove(ids: number[]): Promise<{

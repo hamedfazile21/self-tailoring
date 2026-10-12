@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateCustomerDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const mapped_types_1 = require("@nestjs/mapped-types");
 const create_measurement_dto_1 = require("../../measurements/dto/create-measurement.dto");
 class CustomerMeasurementDto extends (0, mapped_types_1.OmitType)(create_measurement_dto_1.CreateMeasurementDto, [
@@ -50,6 +51,8 @@ __decorate([
 ], CreateCustomerDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => CustomerMeasurementDto),
     __metadata("design:type", CustomerMeasurementDto)
 ], CreateCustomerDto.prototype, "measurement", void 0);
 //# sourceMappingURL=create-customer.dto.js.map

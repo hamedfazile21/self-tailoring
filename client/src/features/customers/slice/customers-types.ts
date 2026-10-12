@@ -20,9 +20,11 @@ export interface CustomerMeasurement {
   length: number
   shoulder: number
   sleeve_length: number
-  collar: number
+  /** `nullable: true` on the column — never measured reads back as `null`. */
+  collar: number | null
   chest: number
-  hem: number
+  /** Nullable too, same as `collar`. */
+  hem: number | null
   cuff: number
   pants_length: number
   created_at: string
@@ -36,8 +38,9 @@ export interface Customer {
   phone: string
   status: CustomerStatus
   /**
-   * Present on `findAll`/`findOne`/`create`, which load the relation. `update`
-   * echoes back whatever was loaded, so treat it as possibly empty.
+   * Every read loads the relation, and `create`/`update` answer by re-reading,
+   * so this arrives on all of them — newest first. The app treats
+   * `measurements[0]` as the customer's current measurement.
    */
   measurements: Array<CustomerMeasurement> | null
   created_at: string
