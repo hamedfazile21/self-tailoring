@@ -17,13 +17,20 @@ const create_measurement_dto_1 = require("../../measurements/dto/create-measurem
 class CustomerMeasurementDto extends (0, mapped_types_1.OmitType)(create_measurement_dto_1.CreateMeasurementDto, [
     'customer_id',
 ]) {
+    id;
 }
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsPositive)(),
+    __metadata("design:type", Number)
+], CustomerMeasurementDto.prototype, "id", void 0);
 class CreateCustomerDto {
     name;
     last_name;
     phone;
     status;
-    measurement;
+    measurements;
 }
 exports.CreateCustomerDto = CreateCustomerDto;
 __decorate([
@@ -51,8 +58,9 @@ __decorate([
 ], CreateCustomerDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.ValidateNested)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => CustomerMeasurementDto),
-    __metadata("design:type", CustomerMeasurementDto)
-], CreateCustomerDto.prototype, "measurement", void 0);
+    __metadata("design:type", Array)
+], CreateCustomerDto.prototype, "measurements", void 0);
 //# sourceMappingURL=create-customer.dto.js.map

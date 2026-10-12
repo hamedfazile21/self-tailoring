@@ -3,6 +3,7 @@ import React from 'react'
 import CreateCustomerDialog from './create-customer-dialog'
 import { useCustomer } from './customers-provider'
 import DeleteCustomerDialog from './delete-customer-dialog'
+import DetailsCustomerDialog from './details-customer-dialog'
 
 const CustomerDialog = () => {
   const { open, setOpen, currentRow } = useCustomer()
@@ -27,6 +28,13 @@ const CustomerDialog = () => {
         open={open === 'delete-customer'}
         setOpen={setOpen}
         currentRow={currentRow}
+      />
+
+      <DetailsCustomerDialog
+        key={'details-customer-dialog'}
+        open={open === 'details-customer'}
+        setOpen={setOpen}
+        currentRow={currentRow?.id ?? null}
       />
     </>
   )

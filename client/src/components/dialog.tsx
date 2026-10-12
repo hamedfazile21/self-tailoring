@@ -245,7 +245,7 @@ export function Dialog({
               {footer && (
                 <div
                   className={`flex shrink-0 justify-end gap-x-2 border-t border-white/10 dark:border-white/8 ${
-                    isSide ? 'p-4' : 'p-6 pt-4'
+                    isSide ? 'p-4' : 'py-4'
                   }`}
                 >
                   {footer}

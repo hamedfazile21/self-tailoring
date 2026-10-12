@@ -1,6 +1,9 @@
 import {
+  IsArray,
+  IsInt,
   IsNotEmpty,
   IsOptional,
+  IsPositive,
   IsString,
   MaxLength,
   IsIn,
@@ -12,7 +15,17 @@ import { CreateMeasurementDto } from 'src/measurements/dto/create-measurement.dt
 
 class CustomerMeasurementDto extends OmitType(CreateMeasurementDto, [
   'customer_id',
-] as const) {}
+] as const) {
+  /**
+   * Set on a row that already exists, so `update` can tell an edit from an
+   * addition. Left off by `create`, and ignored there — the ids come from the
+   * inserts.
+   */
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  id?: number;
+}
 
 export class CreateCustomerDto {
   @IsString()
@@ -35,19 +48,23 @@ export class CreateCustomerDto {
   status?: 'active' | 'inactive';
 
   /**
-   * The customer's measurement, written on the same request as the customer.
+   * The customer's measurements, written on the same request as the customer.
    *
-   * `@ValidateNested()` and `@Type()` have to come as a pair: without them
-   * class-validator walks straight past the nested object and anything at all
-   * reaches the measurements row.
+   * `@ValidateNested({ each: true })` and `@Type()` have to come as a pair:
+   * without them class-validator walks straight past the nested objects and
+   * anything at all reaches the measurements rows.
    *
    * `UpdateCustomerDto` is a `PartialType` of this class and inherits both, so
-   * on a PATCH the property stays optional while the object itself stays
-   * whole — sending a measurement means sending every field a measurement
-   * requires, and it overwrites the customer's current one.
+   * on a PATCH the property stays optional while each object in it stays whole
+   * — every row sent carries every field a measurement requires.
+   *
+   * On a PATCH the array is the customer's whole set: rows with an `id` are
+   * updated, rows without are added, and rows the array leaves out are
+   * deleted. Leaving the property off entirely changes nothing.
    */
   @IsOptional()
-  @ValidateNested()
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => CustomerMeasurementDto)
-  measurement?: CustomerMeasurementDto;
+  measurements?: CustomerMeasurementDto[];
 }

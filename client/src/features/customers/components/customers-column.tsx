@@ -28,7 +28,7 @@ const HeaderLabel = ({ label }: { label: string }) => {
 /** Stands in for a column the customer has no value for. */
 const Blank = () => <span className="text-muted">—</span>
 
-const StatusBadge = ({ status }: { status: CustomerStatus }) => {
+export const StatusBadge = ({ status }: { status: CustomerStatus }) => {
   const { t } = useTranslation()
 
   return (
