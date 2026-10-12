@@ -24,7 +24,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { HeaderSearchTrigger, useHeaderSearch } from './header-search-trigger'
 import Popover from '../popover'
 import { signOut } from '#/lib/auth'
+import { resetSettings } from '#/features/settings/slice/settings-slice'
 import { useState } from 'react'
+
 const Header = () => {
   const { searchOpen, setSearchOpen } = useHeaderSearch()
   const [signingOut, setSigningOut] = useState(false)
@@ -90,6 +92,10 @@ const Header = () => {
     setSigningOut(true)
     try {
       await signOut()
+      // `clearSession` only clears the device. Without this the slice stays
+      // `succeeded`, and the layout loader's `condition` would skip the fetch
+      // for whoever signs in next.
+      dispatch(resetSettings())
       await navigate({ to: '/login', search: { redirect: undefined } })
     } finally {
       setSigningOut(false)

@@ -1,5 +1,7 @@
+import { store } from '#/app/store'
 import Header from '#/components/layout/header'
 import Sidebar from '#/components/layout/sidebar'
+import { fetchSettings } from '#/features/settings/slice/settings-action'
 import { isSignedIn } from '#/lib/auth'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
@@ -13,6 +15,15 @@ export const Route = createFileRoute('/_layout')({
       throw redirect({ to: '/login', search: { redirect: location.href } })
     }
   },
+  /**
+   * `startup` already has these after a reload; this is the sign-in path,
+   * where it ran before there was a token to ask with. The thunk's `condition`
+   * makes whichever arrives second a no-op, so this is one request either way.
+   *
+   * It runs after `beforeLoad`, so a signed-out visitor is redirected before
+   * it is ever reached.
+   */
+  loader: () => store.dispatch(fetchSettings()),
   component: AppLayoutComponent,
 })
 
