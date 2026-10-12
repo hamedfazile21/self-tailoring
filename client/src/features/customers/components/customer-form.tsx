@@ -1,9 +1,9 @@
-import CheckBox from '#/components/checkbox'
 import Input from '#/components/input'
 import InputSelect from '#/components/input-select'
 import type { SelectOption } from '#/components/input-select'
 import { useAppDispatch, useAppSelector } from '#/hooks/redux'
 import { useForm } from '@tanstack/react-form'
+import { Plus, Trash2 } from 'lucide-react'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -27,6 +27,11 @@ import type {
  * column that means "never measured". They are parsed once, on submit.
  */
 interface MeasurementFormValues {
+  /**
+   * The saved row's id, or `null` for a row added in this form. It is what
+   * tells the update route an edit from an addition.
+   */
+  id: number | null
   name: string
   length: string
   shoulder: string
@@ -43,16 +48,11 @@ interface CustomerFormValues {
   last_name: string
   phone: string
   status: CustomerStatus
-  /**
-   * Whether a measurement goes out with the save at all. Forced on when the
-   * customer already has one — there is no "remove the measurement" on either
-   * endpoint, so unchecking it could only mislead.
-   */
-  withMeasurement: boolean
-  measurement: MeasurementFormValues
+  /** One row per fitting. Empty is allowed — a customer need not be measured. */
+  measurements: Array<MeasurementFormValues>
 }
 
-type MeasurementKey = Exclude<keyof MeasurementFormValues, 'name'>
+type MeasurementKey = Exclude<keyof MeasurementFormValues, 'id' | 'name'>
 
 /** `required` mirrors `@IsNotEmpty()` on `CreateMeasurementDto`. */
 const measurementFields: Array<{
@@ -75,7 +75,8 @@ const statusOptions: Array<SelectOption> = [
   { value: 'inactive', label: 'Inactive' },
 ]
 
-const emptyMeasurement: MeasurementFormValues = {
+const emptyMeasurementRow: MeasurementFormValues = {
+  id: null,
   name: '',
   length: '',
   shoulder: '',
@@ -87,33 +88,44 @@ const emptyMeasurement: MeasurementFormValues = {
   pants_length: '',
 }
 
-const measurementKeys = Object.keys(emptyMeasurement) as Array<
-  keyof MeasurementFormValues
->
+/** Everything but `id`, which is compared on its own. */
+const comparedKeys: Array<Exclude<keyof MeasurementFormValues, 'id'>> = [
+  'name',
+  ...measurementFields.map(({ key }) => key),
+]
 
 /** A saved measurement, back in the shape the inputs hold. */
 const measurementToForm = (
-  measurement: CustomerMeasurement | null,
-): MeasurementFormValues =>
-  measurement === null
-    ? emptyMeasurement
-    : {
-        name: measurement.name ?? '',
-        length: String(measurement.length),
-        shoulder: String(measurement.shoulder),
-        sleeve_length: String(measurement.sleeve_length),
-        // `collar` and `hem` are nullable columns; a null is an empty input,
-        // not a zero.
-        collar: measurement.collar === null ? '' : String(measurement.collar),
-        chest: String(measurement.chest),
-        hem: measurement.hem === null ? '' : String(measurement.hem),
-        cuff: String(measurement.cuff),
-        pants_length: String(measurement.pants_length),
-      }
+  measurement: CustomerMeasurement,
+): MeasurementFormValues => ({
+  id: measurement.id,
+  name: measurement.name ?? '',
+  length: String(measurement.length),
+  shoulder: String(measurement.shoulder),
+  sleeve_length: String(measurement.sleeve_length),
+  // `collar` and `hem` are nullable columns; a null is an empty input, not a
+  // zero.
+  collar: measurement.collar === null ? '' : String(measurement.collar),
+  chest: String(measurement.chest),
+  hem: measurement.hem === null ? '' : String(measurement.hem),
+  cuff: String(measurement.cuff),
+  pants_length: String(measurement.pants_length),
+})
 
 /** Compared as typed, so `12` and ` 12 ` are not a change. */
-const sameMeasurement = (a: MeasurementFormValues, b: MeasurementFormValues) =>
-  measurementKeys.every((key) => a[key].trim() === b[key].trim())
+const sameMeasurementRow = (
+  a: MeasurementFormValues,
+  b: MeasurementFormValues,
+) =>
+  a.id === b.id && comparedKeys.every((key) => a[key].trim() === b[key].trim())
+
+/** Row count, row identity and every value — any of the three is a change. */
+const sameMeasurements = (
+  a: Array<MeasurementFormValues>,
+  b: Array<MeasurementFormValues>,
+) =>
+  a.length === b.length &&
+  a.every((row, index) => sameMeasurementRow(row, b[index]))
 
 /** Column lengths from `CreateCustomerDto` — the server 400s past them. */
 const NAME_MAX = 255
@@ -142,64 +154,54 @@ const validatePhone = (value: string) => {
 }
 
 /**
- * Blank is only an error for the fields the DTO marks `@IsNotEmpty()`, and
- * nothing is an error at all while the measurement section is switched off —
- * those fields stay registered on the form after they unmount.
+ * Blank is only an error for the fields the DTO marks `@IsNotEmpty()`. A row
+ * that is not on the form is not validated at all, because removing it takes
+ * its values with it.
  */
-const validateMeasurement =
+const validateMeasurementValue =
   (required: boolean) =>
-  ({
-    value,
-    fieldApi,
-  }: {
-    value: string
-    fieldApi: { form: { getFieldValue: (field: 'withMeasurement') => boolean } }
-  }) => {
-    if (!fieldApi.form.getFieldValue('withMeasurement')) return undefined
-
+  ({ value }: { value: string }) => {
     const trimmed = value.trim()
     if (!trimmed) return required ? 'Required' : undefined
 
     const parsed = Number(trimmed)
-    if (!Number.isFinite(parsed)) return 'Enter a number'
-    if (parsed <= 0) return 'Must be greater than 0'
+    // Terse on purpose: these render under a narrow grid cell.
+    if (!Number.isFinite(parsed)) return 'Not a number'
+    if (parsed <= 0) return 'Must be > 0'
     return undefined
   }
 
 /** Optional keys are left out entirely rather than sent as 0 or `''`. */
 const buildMeasurement = (
-  values: CustomerFormValues,
-): NewCustomerMeasurement | undefined => {
-  if (!values.withMeasurement) return undefined
-
-  const { measurement } = values
-  const name = measurement.name.trim()
+  row: MeasurementFormValues,
+): NewCustomerMeasurement => {
+  const name = row.name.trim()
 
   return {
+    // A row added here has no id yet; the server reads that as an addition.
+    ...(row.id === null ? {} : { id: row.id }),
     ...(name ? { name } : {}),
-    length: Number(measurement.length),
-    shoulder: Number(measurement.shoulder),
-    sleeve_length: Number(measurement.sleeve_length),
-    chest: Number(measurement.chest),
-    cuff: Number(measurement.cuff),
-    pants_length: Number(measurement.pants_length),
-    ...(measurement.collar.trim()
-      ? { collar: Number(measurement.collar) }
-      : {}),
-    ...(measurement.hem.trim() ? { hem: Number(measurement.hem) } : {}),
+    length: Number(row.length),
+    shoulder: Number(row.shoulder),
+    sleeve_length: Number(row.sleeve_length),
+    chest: Number(row.chest),
+    cuff: Number(row.cuff),
+    pants_length: Number(row.pants_length),
+    ...(row.collar.trim() ? { collar: Number(row.collar) } : {}),
+    ...(row.hem.trim() ? { hem: Number(row.hem) } : {}),
   }
 }
 
 /**
  * Only what actually moved. `PATCH /customers/update/:id` takes a partial, and
  * echoing back untouched fields would overwrite whatever another session wrote
- * to them in the meantime — a measurement most of all, since sending one
- * overwrites the customer's current measurement wholesale.
+ * to them in the meantime — the measurements most of all, since sending the
+ * array makes it the customer's whole set.
  */
 const buildChanges = (
   values: CustomerFormValues,
   customer: Customer,
-  current: CustomerMeasurement | null,
+  savedRows: Array<MeasurementFormValues>,
 ): UpdateCustomerPayload => {
   const changes: UpdateCustomerPayload = {}
 
@@ -216,12 +218,8 @@ const buildChanges = (
 
   if (values.status !== customer.status) changes.status = values.status
 
-  const measurement = buildMeasurement(values)
-  if (
-    measurement &&
-    !sameMeasurement(values.measurement, measurementToForm(current))
-  ) {
-    changes.measurement = measurement
+  if (!sameMeasurements(values.measurements, savedRows)) {
+    changes.measurements = values.measurements.map(buildMeasurement)
   }
 
   return changes
@@ -239,18 +237,13 @@ interface props {
 const CustomerForm: FC<props> = ({ customer, formId, onDone }) => {
   const { t } = useTranslation('')
   const dispatch = useAppDispatch()
-  const isEditMode = customer !== null
 
   // The reducer only splices a new customer onto page one; from any other page
   // the row would be saved but invisible, so that case refetches instead.
   const { page } = useAppSelector(selectCustomersFilters)
 
-  /**
-   * The relation comes back newest-first from the server, so this is the
-   * customer's current measurement — the one `PATCH` writes to.
-   */
-  const current = customer?.measurements?.at(0) ?? null
-  const hasMeasurement = current !== null
+  /** The saved set, in form shape — both the seed and the diff's baseline. */
+  const savedRows = (customer?.measurements ?? []).map(measurementToForm)
 
   /**
    * Read once, when the form mounts. The dialog remounts it on every open, so
@@ -263,16 +256,15 @@ const CustomerForm: FC<props> = ({ customer, formId, onDone }) => {
     // `status` is `@IsNotEmpty()` on create, and the column defaults to
     // active, so a new customer starts there.
     status: customer?.status ?? 'active',
-    withMeasurement: hasMeasurement,
-    measurement: measurementToForm(current),
+    measurements: savedRows,
   }
 
-  const { Field, Subscribe, handleSubmit } = useForm({
+  const { Field, handleSubmit } = useForm({
     defaultValues,
 
     onSubmit: async ({ value }) => {
       if (customer) {
-        const changes = buildChanges(value, customer, current)
+        const changes = buildChanges(value, customer, savedRows)
 
         // Nothing moved: a PATCH here would only bump `updated_at`.
         if (Object.keys(changes).length === 0) {
@@ -287,17 +279,13 @@ const CustomerForm: FC<props> = ({ customer, formId, onDone }) => {
         // the typed-in values are not lost.
         if (updateCustomer.rejected.match(result)) return
 
-        toast.success(
-          changes.measurement && !hasMeasurement
-            ? t('Customer updated, measurement added')
-            : t('Customer updated'),
-        )
+        toast.success(t('Customer updated'))
         onDone()
         return
       }
 
       const lastName = value.last_name.trim()
-      const measurement = buildMeasurement(value)
+      const measurements = value.measurements.map(buildMeasurement)
 
       const result = await dispatch(
         createCustomer({
@@ -305,7 +293,7 @@ const CustomerForm: FC<props> = ({ customer, formId, onDone }) => {
           ...(lastName ? { last_name: lastName } : {}),
           phone: value.phone.trim(),
           status: value.status,
-          ...(measurement ? { measurement } : {}),
+          ...(measurements.length > 0 ? { measurements } : {}),
         }),
       )
       if (createCustomer.rejected.match(result)) return
@@ -420,101 +408,143 @@ const CustomerForm: FC<props> = ({ customer, formId, onDone }) => {
         />
       </div>
 
-      <section className="rounded-lg border border-borderColor p-4">
-        {hasMeasurement ? (
-          // Always on, so no checkbox: there is no endpoint that removes a
-          // measurement, and `withMeasurement` is seeded true above.
-          <h3 className="text-sm font-medium text-foreground">
-            {t('Measurement')}
-          </h3>
-        ) : (
-          <Field
-            name="withMeasurement"
-            children={(field) => (
-              <label className="flex cursor-pointer items-center gap-x-2">
-                <CheckBox
-                  size="sm"
-                  checked={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.checked)}
-                />
-                <span className="text-sm font-medium text-foreground">
-                  {isEditMode
-                    ? t('Add a measurement')
-                    : t('Record a measurement now')}
-                </span>
-              </label>
-            )}
-          />
-        )}
-
-        <Subscribe
-          selector={(state) => state.values.withMeasurement}
-          children={(withMeasurement) =>
-            withMeasurement ? (
-              <div className="mt-4 flex flex-col gap-y-4">
-                <Field
-                  name="measurement.name"
-                  children={(field) => (
-                    <Input
-                      label={t('Measurement label')}
-                      placeholder={t('e.g. summer suit')}
-                      id={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
-                    />
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {measurementFields.map(({ key, label, required }) => (
-                    <Field
-                      key={key}
-                      name={`measurement.${key}` as const}
-                      validators={{ onSubmit: validateMeasurement(required) }}
-                      children={(field) => (
-                        <Input
-                          label={t(label)}
-                          required={required}
-                          type="number"
-                          inputMode="decimal"
-                          min={0}
-                          step="any"
-                          id={field.name}
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(event) =>
-                            field.handleChange(event.target.value)
-                          }
-                          error={
-                            field.state.meta.isTouched
-                              ? field.state.meta.errors.join(', ')
-                              : undefined
-                          }
-                        />
-                      )}
-                    />
-                  ))}
-                </div>
-
-                {hasMeasurement && (
-                  <p className="text-xs text-muted">
-                    {t(
-                      'Saving replaces this measurement. Clearing an optional field leaves its last value in place.',
-                    )}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="mt-1 text-xs text-muted">
-                {t('You can add one later, or now, from this form.')}
+      <Field
+        name="measurements"
+        mode="array"
+        children={(rows) => (
+          <section>
+            <div className="mb-2">
+              <h3 className="text-sm font-medium text-foreground">
+                {t('Measurements')}
+              </h3>
+              <p className="mt-0.5 text-xs text-muted">
+                {t('One row per fitting. Add as many as you need.')}
               </p>
-            )
-          }
-        />
-      </section>
+            </div>
+
+            {/* Ten columns of inputs do not fit a dialog, so it scrolls. */}
+            <div className="table-wrapper scrollbar-thin rounded-lg border border-borderColor">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="table-header-row">
+                    <th scope="col" className="table-header-cell w-40">
+                      {t('Measurement Label')}
+                    </th>
+                    {measurementFields.map(({ key, label, required }) => (
+                      <th
+                        key={key}
+                        scope="col"
+                        className="table-header-cell w-24"
+                      >
+                        {t(label)}
+                        {/* The asterisk lives here, not on each input: the
+                            column is the label in a grid like this. */}
+                        {required && (
+                          <span className="text-red-500 ltr:ml-0.5 rtl:mr-0.5">
+                            *
+                          </span>
+                        )}
+                      </th>
+                    ))}
+                    <th scope="col" className="table-header-cell w-10">
+                      <span className="sr-only">{t('Remove')}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.state.value.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={measurementFields.length + 2}
+                        className="px-4 py-6 text-center text-xs text-muted"
+                      >
+                        {t('No measurements yet.')}
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.state.value.map((_, index) => (
+                      // Keyed by index on purpose: the field names below are
+                      // index-based too, so a removal re-binds both together.
+                      <tr key={index} className="table-body-row">
+                        <td className="px-2 py-2 align-top">
+                          <Field
+                            name={`measurements[${index}].name`}
+                            children={(field) => (
+                              <Input
+                                className="py-1.5!"
+                                aria-label={`${t('Label')} ${index + 1}`}
+                                placeholder={t('e.g. summer suit')}
+                                id={field.name}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(event) =>
+                                  field.handleChange(event.target.value)
+                                }
+                              />
+                            )}
+                          />
+                        </td>
+
+                        {measurementFields.map(({ key, label, required }) => (
+                          <td key={key} className="px-2 py-2 align-top">
+                            <Field
+                              name={`measurements[${index}].${key}`}
+                              validators={{
+                                onSubmit: validateMeasurementValue(required),
+                              }}
+                              children={(field) => (
+                                <Input
+                                  className="py-1.5! text-center tabular-nums"
+                                  aria-label={`${t(label)} ${index + 1}`}
+                                  type="number"
+                                  inputMode="decimal"
+                                  min={0}
+                                  step="any"
+                                  id={field.name}
+                                  value={field.state.value}
+                                  onBlur={field.handleBlur}
+                                  onChange={(event) =>
+                                    field.handleChange(event.target.value)
+                                  }
+                                  error={
+                                    field.state.meta.isTouched
+                                      ? field.state.meta.errors.join(', ')
+                                      : undefined
+                                  }
+                                />
+                              )}
+                            />
+                          </td>
+                        ))}
+
+                        <td className="px-2 py-2 align-top">
+                          <button
+                            type="button"
+                            aria-label={`${t('Remove row')} ${index + 1}`}
+                            className="rounded-md p-1.5 text-muted transition-colors hover:bg-danger/10 hover:text-danger"
+                            onClick={() => rows.removeValue(index)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-secondary-outline btn-sm mt-3"
+              onClick={() => rows.pushValue(emptyMeasurementRow)}
+            >
+              <Plus size={15} />
+              {t('Add row')}
+            </button>
+          </section>
+        )}
+      />
     </form>
   )
 }

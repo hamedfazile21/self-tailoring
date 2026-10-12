@@ -21,6 +21,7 @@ export declare class CustomersService {
     private sortMeasurements;
     findOne(id: number): Promise<Customer>;
     update(id: number, updateCustomerDto: UpdateCustomerDto): Promise<Customer>;
+    private reconcileMeasurements;
     remove(ids: number[]): Promise<{
         message: string;
         affected: number;

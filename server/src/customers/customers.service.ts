@@ -30,13 +30,21 @@ export class CustomersService {
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto) {
-    const { measurement, ...customerData } = createCustomerDto;
+    const { measurements, ...customerData } = createCustomerDto;
     const customer = this.repository.create(customerData);
     const savedCustomer = await this.repository.save(customer);
 
-    if (measurement) {
+    // Sequential rather than `Promise.all`: the rows are few, and inserting
+    // them in the order they were sent keeps their ids in that order too,
+    // which is what the newest-first sort below reads.
+    for (const measurement of measurements ?? []) {
+      const row = { ...measurement };
+      // These rows do not exist yet, so any `id` sent is meaningless — and
+      // letting one through would hand `create` an explicit primary key.
+      delete row.id;
+
       await this.measurementsService.create({
-        ...measurement,
+        ...row,
         customer_id: savedCustomer.id,
       });
     }
@@ -142,41 +150,83 @@ export class CustomersService {
   }
 
   /**
-   * `measurement` is pulled out and handled on its own: it is not a column on
+   * `measurements` is pulled out and handled on its own: it is not a column on
    * `customers`, so leaving it in the `Object.assign` below would let `save`
    * discard it without a word.
    *
-   * Sending one overwrites the customer's current measurement, or creates
-   * their first if they have none. Omitting it leaves their measurements
-   * untouched.
+   * When it is sent it is the customer's whole set — see
+   * `reconcileMeasurements`. Omitting it leaves their measurements untouched,
+   * which is what a save from a form that only edited the name does.
    */
   async update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    const { measurement, ...customerData } = updateCustomerDto;
+    const { measurements, ...customerData } = updateCustomerDto;
 
     const customer = await this.findOne(id);
     Object.assign(customer, customerData as Partial<Customer>);
     await this.repository.save(customer);
 
-    if (measurement) {
-      const current = customer.measurements?.at(0);
-
-      if (current) {
-        await this.measurementsService.update(current.id, {
-          ...measurement,
-          customer_id: id,
-        });
-      } else {
-        await this.measurementsService.create({
-          ...measurement,
-          customer_id: id,
-        });
-      }
+    if (measurements) {
+      await this.reconcileMeasurements(customer, measurements);
     }
 
     // Re-read rather than returning the entity above: it still holds the
     // relation as it looked before the write, and the client merges whatever
     // comes back straight into its row.
     return this.findOne(id);
+  }
+
+  /**
+   * Brings the customer's measurement rows in line with the array sent: an
+   * `id` the customer already owns is an edit, a row without one is an
+   * addition, and a row the array leaves out is a deletion.
+   *
+   * An `id` belonging to somebody else is rejected rather than quietly
+   * created, since the only way to send one is by hand.
+   *
+   * A deletion can still fail: `Order.measurement` is `onDelete: 'RESTRICT'`,
+   * so a measurement an order was cut from cannot be removed. That surfaces as
+   * the database error it is, rather than being swallowed here.
+   */
+  private async reconcileMeasurements(
+    customer: Customer,
+    rows: NonNullable<UpdateCustomerDto['measurements']>,
+  ) {
+    const existing = new Map(
+      (customer.measurements ?? []).map((measurement) => [
+        measurement.id,
+        measurement,
+      ]),
+    );
+
+    const kept = new Set<number>();
+
+    for (const { id: rowId, ...row } of rows) {
+      if (rowId === undefined) {
+        await this.measurementsService.create({
+          ...row,
+          customer_id: customer.id,
+        });
+        continue;
+      }
+
+      if (!existing.has(rowId)) {
+        throw new BadRequestException(
+          `Measurement ${rowId} does not belong to this customer.`,
+        );
+      }
+
+      kept.add(rowId);
+      await this.measurementsService.update(rowId, {
+        ...row,
+        customer_id: customer.id,
+      });
+    }
+
+    for (const measurementId of existing.keys()) {
+      if (!kept.has(measurementId)) {
+        await this.measurementsService.remove(measurementId);
+      }
+    }
   }
 
   async remove(ids: number[]) {

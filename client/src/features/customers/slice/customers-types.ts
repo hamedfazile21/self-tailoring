@@ -48,10 +48,15 @@ export interface Customer {
 }
 
 /**
- * The measurement that can ride along with a new customer. `customer_id` is
+ * One measurement in the array a create or update carries. `customer_id` is
  * omitted — the server fills it in from the customer it just saved.
  */
 export interface NewCustomerMeasurement {
+  /**
+   * Set on a row that already exists, which is how `update` tells an edit from
+   * an addition. Left off for a new row, and ignored by `create`.
+   */
+  id?: number
   name?: string
   length: number
   shoulder: number
@@ -74,7 +79,12 @@ export interface CreateCustomerPayload {
    * rejects a create that leaves it out.
    */
   status: CustomerStatus
-  measurement?: NewCustomerMeasurement
+  /**
+   * On a create, every row is inserted. On an update this is the customer's
+   * whole set: rows with an `id` are edited, rows without are added, and rows
+   * left out are deleted. Leave the property off to touch nothing.
+   */
+  measurements?: Array<NewCustomerMeasurement>
 }
 
 /** Body of `PATCH /customers/update/:id` — `PartialType` of the create DTO. */

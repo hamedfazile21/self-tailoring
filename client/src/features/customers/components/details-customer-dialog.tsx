@@ -110,8 +110,8 @@ const DetailsCustomerDialog: FC<props> = ({ currentRow, open, setOpen }) => {
       open={open}
       onClose={onCloseDialog}
       title={t('Customer details')}
-      position="center"
-      size="xl"
+      position="top"
+      size="5xl"
       footer={
         // The panel's own padding: the shared footer only sets `py-4`.
         <div className="flex items-center gap-x-2">
@@ -277,19 +277,10 @@ const DetailsCustomerDialog: FC<props> = ({ currentRow, open, setOpen }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {measurements.map((row, index) => (
+                        {measurements.map((row) => (
                           <tr key={row.id} className="table-body-row">
                             <td className="table-body-cell whitespace-nowrap">
-                              <span className="flex items-center gap-x-1.5">
-                                <span>{row.name || '—'}</span>
-                                {/* Newest first from the server, and the row
-                                    the edit form overwrites. */}
-                                {index === 0 && (
-                                  <span className="shrink-0 rounded-full bg-primary/15 px-1.5 text-[11px] font-medium text-primary">
-                                    {t('Current')}
-                                  </span>
-                                )}
-                              </span>
+                              {row.name || '—'}
                             </td>
                             <td className="table-body-cell whitespace-nowrap text-muted">
                               {formatDate(row.created_at)}

@@ -26,12 +26,14 @@ let CustomersService = class CustomersService {
         this.repository = repository;
     }
     async create(createCustomerDto) {
-        const { measurement, ...customerData } = createCustomerDto;
+        const { measurements, ...customerData } = createCustomerDto;
         const customer = this.repository.create(customerData);
         const savedCustomer = await this.repository.save(customer);
-        if (measurement) {
+        for (const measurement of measurements ?? []) {
+            const row = { ...measurement };
+            delete row.id;
             await this.measurementsService.create({
-                ...measurement,
+                ...row,
                 customer_id: savedCustomer.id,
             });
         }
@@ -99,26 +101,43 @@ let CustomersService = class CustomersService {
         return this.sortMeasurements(customer);
     }
     async update(id, updateCustomerDto) {
-        const { measurement, ...customerData } = updateCustomerDto;
+        const { measurements, ...customerData } = updateCustomerDto;
         const customer = await this.findOne(id);
         Object.assign(customer, customerData);
         await this.repository.save(customer);
-        if (measurement) {
-            const current = customer.measurements?.at(0);
-            if (current) {
-                await this.measurementsService.update(current.id, {
-                    ...measurement,
-                    customer_id: id,
-                });
-            }
-            else {
-                await this.measurementsService.create({
-                    ...measurement,
-                    customer_id: id,
-                });
-            }
+        if (measurements) {
+            await this.reconcileMeasurements(customer, measurements);
         }
         return this.findOne(id);
+    }
+    async reconcileMeasurements(customer, rows) {
+        const existing = new Map((customer.measurements ?? []).map((measurement) => [
+            measurement.id,
+            measurement,
+        ]));
+        const kept = new Set();
+        for (const { id: rowId, ...row } of rows) {
+            if (rowId === undefined) {
+                await this.measurementsService.create({
+                    ...row,
+                    customer_id: customer.id,
+                });
+                continue;
+            }
+            if (!existing.has(rowId)) {
+                throw new common_1.BadRequestException(`Measurement ${rowId} does not belong to this customer.`);
+            }
+            kept.add(rowId);
+            await this.measurementsService.update(rowId, {
+                ...row,
+                customer_id: customer.id,
+            });
+        }
+        for (const measurementId of existing.keys()) {
+            if (!kept.has(measurementId)) {
+                await this.measurementsService.remove(measurementId);
+            }
+        }
     }
     async remove(ids) {
         if (!Array.isArray(ids) ||

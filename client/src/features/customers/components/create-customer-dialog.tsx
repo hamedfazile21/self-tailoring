@@ -44,10 +44,10 @@ const CreateCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
       description={
         isEditMode
           ? t('Change the details of this customer.')
-          : t('Add a customer, and their first measurement if you have it.')
+          : t('Add a customer, and their measurements if you have it.')
       }
       position="top"
-      size="xl"
+      size="5xl"
       closeOnOutsideClick={!isSaving}
       footer={
         <>
