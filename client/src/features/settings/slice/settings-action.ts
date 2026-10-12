@@ -8,6 +8,7 @@
 import { api, normalizeError } from '#/lib/api'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type { RootState } from '#/app/store'
+import type { SettingKey } from './settings-keys'
 import type { Setting } from './settings-types'
 
 export const fetchSettings = createAsyncThunk<
@@ -39,3 +40,27 @@ export const fetchSettings = createAsyncThunk<
     },
   },
 )
+
+/**
+ * Create-or-edit one setting. `PUT /settings/upsert/:key` exists so a caller
+ * saving a preference never has to know whether it has been saved before.
+ *
+ * `silent` again: a preference that failed to persist should not interrupt
+ * what the person was doing. The UI it came from already shows their choice,
+ * and the worst case is that the choice does not survive a reload.
+ */
+export const saveSetting = createAsyncThunk<
+  Setting,
+  { key: SettingKey; value: string },
+  { rejectValue: string }
+>('settings/save', async ({ key, value }, { rejectWithValue }) => {
+  try {
+    return await api.put<Setting, { value: string }>(
+      `/settings/upsert/${key}`,
+      { value },
+      { unwrap: true, silent: true },
+    )
+  } catch (error) {
+    return rejectWithValue(normalizeError(error).message)
+  }
+})

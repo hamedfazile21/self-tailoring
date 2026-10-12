@@ -1,21 +1,96 @@
 import { useAppDispatch, useAppSelector } from '#/hooks/redux'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import type { PaginationState, Updater } from '@tanstack/react-table'
+import type {
+  PaginationState,
+  Updater,
+  VisibilityState,
+} from '@tanstack/react-table'
 import { customersColumns } from './customers-column'
 import TableToolbar from './table-toolbar'
 import Pagination from '#/components/pagination'
 import { fetchCustomers } from '../slice/customers-action'
+import { saveSetting } from '#/features/settings/slice/settings-action'
+import { SETTING_KEYS } from '#/features/settings/slice/settings-keys'
+import { selectSettingsMap } from '#/features/settings/slice/settings-selectors'
 import { BarLoader } from 'react-spinners'
+
+/**
+ * The toolbar's column toggles, as kept in the `customer-view-table` setting.
+ *
+ * It is JSON in a `varchar`: written by this app, but hand-editable in the
+ * database and liable to have been written by an older version of these
+ * columns. Anything unparseable counts as "no preference", which shows every
+ * column — never a crashed table.
+ */
+const parseColumnVisibility = (raw?: string): VisibilityState => {
+  if (!raw) return {}
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return {}
+    }
+
+    const visibility: VisibilityState = {}
+    for (const [column, value] of Object.entries(parsed)) {
+      // Drop anything that is not a boolean rather than handing the table a
+      // value it would read as truthy.
+      if (typeof value === 'boolean') visibility[column] = value
+    }
+
+    return visibility
+  } catch {
+    return {}
+  }
+}
 
 const CustomersTable = () => {
   const dispatch = useAppDispatch()
   const { list } = useAppSelector((state) => state.customers)
+  const settings = useAppSelector(selectSettingsMap)
+
+  /**
+   * Seeded from the saved setting, then owned here. `startup` and the
+   * authenticated layout's loader both land the settings before this mounts,
+   * so the first render already has the preference.
+   *
+   * Deliberately a seed and not a binding: re-reading the store on every
+   * change would fight the toggle the person just made, and a later refetch
+   * would undo it.
+   */
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => parseColumnVisibility(settings[SETTING_KEYS.customerTableView]),
+  )
+
+  /**
+   * Every toggle from the toolbar lands here and is persisted as it is made.
+   * Toggling columns is rare enough that one request each is cheaper than the
+   * machinery to batch them, and the thunk is `silent` — a failed save costs
+   * the preference on the next reload, nothing more.
+   */
+  const persistColumnVisibility = (updater: Updater<VisibilityState>) => {
+    const next =
+      typeof updater === 'function' ? updater(columnVisibility) : updater
+
+    setColumnVisibility(next)
+
+    void dispatch(
+      saveSetting({
+        key: SETTING_KEYS.customerTableView,
+        value: JSON.stringify(next),
+      }),
+    )
+  }
 
   /**
    * The server owns paging, so the table's own pagination state is a mirror of
@@ -52,8 +127,10 @@ const CustomersTable = () => {
     manualPagination: true,
     rowCount: list.pagination.total,
     onPaginationChange: requestPage,
+    onColumnVisibilityChange: persistColumnVisibility,
     state: {
       pagination,
+      columnVisibility,
     },
     enableRowSelection: true,
     defaultColumn: {

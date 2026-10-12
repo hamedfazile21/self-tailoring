@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { UpdateSettingDto } from './dto/update-setting.dto';
+import { UpsertSettingDto } from './dto/upsert-setting.dto';
 import { Setting } from './entities/setting.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,6 +25,26 @@ export class SettingsService {
 
   async findOne(key: string) {
     return await this.settingRepository.findOne({ where: { key } });
+  }
+
+  /**
+   * Writes a setting without the caller having to know whether it exists yet,
+   * which is what a client storing its own preferences needs: the first save
+   * is an insert, every one after is an edit.
+   *
+   * `key` carries no unique constraint, so a plain `create` on every save
+   * would pile up rows differing only by id — and `findOne` would then return
+   * whichever the database felt like.
+   */
+  async upsert(key: string, upsertSettingDto: UpsertSettingDto) {
+    const existing = await this.findOne(key);
+
+    if (existing) {
+      existing.value = upsertSettingDto.value;
+      return await this.settingRepository.save(existing);
+    }
+
+    return await this.create({ key, value: upsertSettingDto.value });
   }
 
   async update(key: string, updateSettingDto: UpdateSettingDto) {

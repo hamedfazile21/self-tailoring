@@ -33,6 +33,14 @@ let SettingsService = class SettingsService {
     async findOne(key) {
         return await this.settingRepository.findOne({ where: { key } });
     }
+    async upsert(key, upsertSettingDto) {
+        const existing = await this.findOne(key);
+        if (existing) {
+            existing.value = upsertSettingDto.value;
+            return await this.settingRepository.save(existing);
+        }
+        return await this.create({ key, value: upsertSettingDto.value });
+    }
     async update(key, updateSettingDto) {
         const setting = await this.findOne(key);
         if (!setting) {

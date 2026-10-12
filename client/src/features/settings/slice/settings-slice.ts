@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { fetchSettings } from './settings-action'
+import { fetchSettings, saveSetting } from './settings-action'
 import type { RequestStatus, Setting, SettingsMap } from './settings-types'
 
 interface SettingsState {
@@ -49,6 +49,24 @@ const settingsSlice = createSlice({
         state.data = action.payload
         state.values = toMap(action.payload)
       })
+      /**
+       * Folded in rather than refetched: the response is the saved row, so the
+       * store can be brought up to date without a second round trip.
+       *
+       * Nothing is written on `pending` or `rejected` on purpose — the screen
+       * that made the change is already showing it, and a failed save should
+       * leave the store holding what the server actually has.
+       */
+      .addCase(saveSetting.fulfilled, (state, action) => {
+        const saved = action.payload
+        const index = state.data.findIndex((row) => row.key === saved.key)
+
+        if (index === -1) state.data.push(saved)
+        else state.data[index] = saved
+
+        state.values[saved.key] = saved.value
+      })
+
       .addCase(fetchSettings.rejected, (state, action) => {
         state.status = 'failed'
         // The rows already in hand are left alone: a failed refresh is no

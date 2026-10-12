@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const settings_service_1 = require("./settings.service");
 const create_setting_dto_1 = require("./dto/create-setting.dto");
 const update_setting_dto_1 = require("./dto/update-setting.dto");
+const upsert_setting_dto_1 = require("./dto/upsert-setting.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let SettingsController = class SettingsController {
     settingsService;
@@ -31,6 +32,9 @@ let SettingsController = class SettingsController {
     }
     findOne(key) {
         return this.settingsService.findOne(key);
+    }
+    upsert(key, upsertSettingDto) {
+        return this.settingsService.upsert(key, upsertSettingDto);
     }
     update(key, updateSettingDto) {
         return this.settingsService.update(key, updateSettingDto);
@@ -63,6 +67,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], SettingsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Put)('upsert/:key'),
+    __param(0, (0, common_1.Param)('key')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, upsert_setting_dto_1.UpsertSettingDto]),
+    __metadata("design:returntype", void 0)
+], SettingsController.prototype, "upsert", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Patch)('update/:key'),
