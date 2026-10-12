@@ -1,7 +1,7 @@
 import Dialog from '#/components/dialog'
 import Input from '#/components/input'
 import { useAppDispatch, useAppSelector } from '#/hooks/redux'
-import { AlertTriangle, Ruler, Receipt } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,13 +19,6 @@ interface props {
   currentRow?: Customer | null
 }
 
-/** `JD` for Jane Doe, `J` when there is only the one name. */
-const initialsOf = (customer: Customer) =>
-  [customer.name, customer.last_name]
-    .map((part) => part?.trim().charAt(0) ?? '')
-    .join('')
-    .toUpperCase()
-
 const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
   const { t } = useTranslation('')
   const dispatch = useAppDispatch()
@@ -34,9 +27,9 @@ const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
   const isDeleting = useAppSelector(selectCustomersMutating)
 
   /**
-   * Typing the name is the brake. Everything below the fold of this dialog is
-   * irreversible and reaches further than the row the person clicked, so the
-   * delete button stays inert until they have read far enough to retype it.
+   * Typing the name is the brake. This reaches further than the row that was
+   * clicked, so the delete button stays inert until they have read far enough
+   * to retype it.
    */
   const [confirmation, setConfirmation] = useState('')
 
@@ -66,6 +59,7 @@ const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
     // The endpoint is a bulk one, so a single row goes out as `[id]`.
     const result = await dispatch(deleteCustomers([currentRow.id]))
     // The API layer already toasted the failure; staying open lets them retry.
+    setConfirmation('')
     if (deleteCustomers.rejected.match(result)) return
 
     toast.success(t('Customer deleted'))
@@ -80,14 +74,18 @@ const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
   return (
     <Dialog
       open={open}
-      onClose={onCloseDialog}
+      // Escape still reaches this, so it is also the guard against walking out
+      // on a request that is already in flight.
+      onClose={() => {
+        if (!isDeleting) onCloseDialog()
+      }}
       position="center"
-      size="md"
+      size="lg"
       // Nothing here should close by accident, and least of all mid-request.
       closeOnOutsideClick={false}
       showCloseButton={false}
       footer={
-        <>
+        <div className="flex items-center gap-x-2">
           <button
             type="button"
             className="btn btn-secondary"
@@ -104,7 +102,7 @@ const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
           >
             {isDeleting ? t('Deleting...') : t('Delete customer')}
           </button>
-        </>
+        </div>
       }
     >
       <form
@@ -133,50 +131,53 @@ const DeleteCustomerDialog: FC<props> = ({ open, setOpen, currentRow }) => {
           </div>
         </div>
 
-        {/* Who, exactly — a confirm that does not name the record is a confirm
-            people learn to click through. */}
-        <div className="glass-solid flex items-center gap-x-3 rounded-lg p-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-xs font-semibold text-muted">
-            {initialsOf(currentRow)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
-              {fullName}
-            </p>
-            <p className="truncate text-xs text-muted" dir="ltr">
-              {currentRow.phone}
-            </p>
+        {/*
+          Who, and what goes with them, in one box rather than two: a confirm
+          that does not name the record is a confirm people learn to click
+          through, and the cascade is the part they do not expect.
+        */}
+        <div className="overflow-hidden rounded-lg border border-danger/25 bg-danger/5">
+          <div className="flex items-start justify-between gap-x-3 p-3.5">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">
+                {fullName}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-muted" dir="ltr">
+                {currentRow.phone}
+              </p>
+            </div>
+            {/* Latin either way, so it keeps its direction under RTL. */}
+            <span className="shrink-0 text-xs font-medium text-muted" dir="ltr">
+              {customerCode(currentRow.id)}
+            </span>
           </div>
-          <span className="shrink-0 text-xs font-medium text-muted" dir="ltr">
-            {customerCode(currentRow.id)}
-          </span>
-        </div>
 
-        {/* The part people do not expect: both relations cascade in the
-            database, so this is not only the customer's own row. */}
-        <div className="rounded-lg border border-danger/25 bg-danger/5 p-3.5">
-          <p className="text-xs font-medium text-foreground">
-            {t('Deleting them also removes')}
-          </p>
-          <ul className="mt-2.5 flex flex-col gap-y-2">
-            <li className="flex items-center gap-x-2 text-xs text-muted">
-              <Ruler size={14} className="shrink-0 text-danger/70" />
-              <span>
-                {measurementCount === 1
-                  ? t('their 1 saved measurement')
-                  : `${measurementCount} ${t('saved measurements')}`}
-              </span>
-            </li>
-            <li className="flex items-center gap-x-2 text-xs text-muted">
-              <Receipt size={14} className="shrink-0 text-danger/70" />
-              <span>{t('every order placed for them')}</span>
-            </li>
-          </ul>
+          <div className="border-t border-danger/20 p-3.5">
+            <p className="text-xs font-medium text-foreground">
+              {t('Deleting them also removes')}
+            </p>
+            <ul className="mt-1.5 list-disc space-y-1 text-xs text-muted ltr:pl-4 rtl:pr-4">
+              {/* Both relations cascade in the database. A count of zero is
+                  not worth saying, so that line only appears when it is real. */}
+              {measurementCount > 0 && (
+                <li>
+                  {measurementCount === 1
+                    ? t('1 saved measurement')
+                    : t('{{count}} saved measurements', {
+                        count: measurementCount,
+                      })}
+                </li>
+              )}
+              <li>{t('Every order placed for them')}</li>
+            </ul>
+          </div>
         </div>
 
         <Input
-          label={t(`Type "${currentRow.name}" to confirm`)}
-          placeholder={'Hamed'}
+          // Interpolated through i18next, not into the key: a key carrying the
+          // customer's name could never match a locale entry.
+          label={t('Type {{name}} to confirm', { name: currentRow.name })}
+          placeholder={currentRow.name}
           id="delete-customer-confirmation"
           value={confirmation}
           autoComplete="off"
