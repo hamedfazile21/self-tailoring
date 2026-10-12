@@ -49,8 +49,8 @@ const ActionColumn: FC<props> = ({ row }) => {
             type="button"
             className="flex items-center gap-x-2 rounded-md px-2.5 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-500/10"
             onClick={() => {
-              //   setCurrentRow(row.original)
-              //   setOpen('delete-confirmation')
+              setCurrentRow(row.original)
+              setOpen('delete-customer')
             }}
           >
             <Trash2 size={15} />

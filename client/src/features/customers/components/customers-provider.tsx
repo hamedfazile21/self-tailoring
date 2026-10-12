@@ -9,7 +9,8 @@ import React, {
 } from 'react'
 import type { Customer } from '../slice/customers-types'
 
-export type CustomerDialogType = 'create-customer' | 'edit-customer'
+export type CustomerDialogType =
+  'create-customer' | 'edit-customer' | 'delete-customer'
 
 type CustomerContextType = {
   open: CustomerDialogType | null
