@@ -1,4 +1,4 @@
-import { ChartNoAxesCombined, UserCheck } from 'lucide-react'
+import { ChartNoAxesCombined, ShoppingCart, UserCheck } from 'lucide-react'
 
 export type SidebarChild = {
   title: string
@@ -32,6 +32,14 @@ export const sidebar_data: SidebarItem[] = [
         title: 'Customers',
         icon: UserCheck,
         href: '/customers',
+        children: [],
+      },
+
+      {
+        id: 'order',
+        title: 'Order',
+        icon: ShoppingCart,
+        href: '/orders',
         children: [],
       },
     ],

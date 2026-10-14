@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsIndexRouteImport } from './routes/_layout/settings/index'
+import { Route as LayoutOrdersIndexRouteImport } from './routes/_layout/orders/index'
 import { Route as LayoutCustomersIndexRouteImport } from './routes/_layout/customers/index'
 import { Route as AuthRegisterIndexRouteImport } from './routes/_auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/_auth/login/index'
@@ -28,6 +29,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
 const LayoutSettingsIndexRoute = LayoutSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
+  getParentRoute: () => LayoutRouteRoute,
+} as any)
+const LayoutOrdersIndexRoute = LayoutOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
   getParentRoute: () => LayoutRouteRoute,
 } as any)
 const LayoutCustomersIndexRoute = LayoutCustomersIndexRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/login/': typeof AuthLoginIndexRoute
   '/register/': typeof AuthRegisterIndexRoute
   '/customers/': typeof LayoutCustomersIndexRoute
+  '/orders/': typeof LayoutOrdersIndexRoute
   '/settings/': typeof LayoutSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginIndexRoute
   '/register': typeof AuthRegisterIndexRoute
   '/customers': typeof LayoutCustomersIndexRoute
+  '/orders': typeof LayoutOrdersIndexRoute
   '/settings': typeof LayoutSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,15 @@ export interface FileRoutesById {
   '/_auth/login/': typeof AuthLoginIndexRoute
   '/_auth/register/': typeof AuthRegisterIndexRoute
   '/_layout/customers/': typeof LayoutCustomersIndexRoute
+  '/_layout/orders/': typeof LayoutOrdersIndexRoute
   '/_layout/settings/': typeof LayoutSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login/' | '/register/' | '/customers/' | '/settings/'
+  fullPaths:
+    '/' | '/login/' | '/register/' | '/customers/' | '/orders/' | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/customers' | '/settings'
+  to: '/' | '/login' | '/register' | '/customers' | '/orders' | '/settings'
   id:
     | '__root__'
     | '/_layout'
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/_auth/login/'
     | '/_auth/register/'
     | '/_layout/customers/'
+    | '/_layout/orders/'
     | '/_layout/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -113,6 +124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsIndexRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/_layout/orders/': {
+      id: '/_layout/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof LayoutOrdersIndexRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
     '/_layout/customers/': {
       id: '/_layout/customers/'
       path: '/customers'
@@ -140,12 +158,14 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutCustomersIndexRoute: typeof LayoutCustomersIndexRoute
+  LayoutOrdersIndexRoute: typeof LayoutOrdersIndexRoute
   LayoutSettingsIndexRoute: typeof LayoutSettingsIndexRoute
 }
 
 const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutCustomersIndexRoute: LayoutCustomersIndexRoute,
+  LayoutOrdersIndexRoute: LayoutOrdersIndexRoute,
   LayoutSettingsIndexRoute: LayoutSettingsIndexRoute,
 }
 
