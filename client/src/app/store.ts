@@ -3,6 +3,7 @@ import themeSlice from '../features/theme/slice/theme-slice'
 import dashboardSlice from '../features/dashboard/slice/dashboard-slice'
 import customersSlice from '../features/customers/slice/customers-slice'
 import settingsSlice from '../features/settings/slice/settings-slice'
+import ordersSlice from '../features/orders/slice/orders-slice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     dashboard: dashboardSlice,
     customers: customersSlice,
     settings: settingsSlice,
+    orders: ordersSlice,
   },
 })
 

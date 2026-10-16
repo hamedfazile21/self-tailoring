@@ -62,3 +62,63 @@ export interface Order {
   price: string
   status: OrderStatus
 }
+
+/**
+ * Body of `POST /orders/create`.
+ *
+ * The two relations go out as ids. The service checks that the measurement
+ * belongs to the customer and 400s when it does not, so a form must not let
+ * the two be picked independently.
+ */
+export interface CreateOrderPayload {
+  customer_id: number
+  measurement_id: number
+  /** `@IsDateString()` — `YYYY-MM-DD` is what the column stores. */
+  start_date: string
+  end_date: string
+  collar_type: string
+  pants_type: string
+  sleeve_type: string
+  chest_pocket: boolean
+  quantity: number
+  /** Sent as a number, and read back as a string: the column is a `decimal`. */
+  price: number
+  /** Defaults to `pending` on the server when left out. */
+  status?: OrderStatus
+}
+
+/** Body of `PATCH /orders/update/:id` — `PartialType` of the create DTO. */
+export type UpdateOrderPayload = Partial<CreateOrderPayload>
+
+export interface UpdateOrderArgs {
+  id: number
+  changes: UpdateOrderPayload
+}
+
+/** `DELETE /orders/delete` reports how many rows it actually removed. */
+export interface DeleteOrdersResult {
+  message: string
+  affected: number
+}
+
+/**
+ * Query string of the list endpoint, mirrored in the slice as `filters`.
+ *
+ * There is no status filter: unlike `/customers`, the orders endpoint takes
+ * only these three, so filtering by `pending`/`done` would need the server.
+ */
+export interface OrdersQuery {
+  page: number
+  limit: number
+  /** Matched with `LIKE %…%` against the customer name and phone, and both dates. */
+  search: string
+}
+
+export type RequestStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
+
+/** Each request tracks its own status, so one failure cannot blank the rest. */
+export interface Panel<T> {
+  data: T
+  status: RequestStatus
+  error: string | null
+}
