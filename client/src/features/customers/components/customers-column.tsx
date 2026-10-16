@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import ActionColumn from './action-column'
 import type { Customer, CustomerStatus } from '../slice/customers-types'
-import TaskSortPopover from './table-sort-popover'
+import TableSortPopover from '#/components/table-sort-popover'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
 const columnHelper = createColumnHelper<Customer>()
@@ -59,7 +59,7 @@ export const columns = [
       const { t } = useTranslation()
       return (
         <div className="">
-          <TaskSortPopover
+          <TableSortPopover
             children={
               <div className="hover:bg-surface-hover cursor-pointer py-1.5 px-2 rounded-lg flex items-center gap-x-1 w-fit ">
                 <span className="">{t('Name')}</span>
@@ -76,7 +76,6 @@ export const columns = [
                 </span>
               </div>
             }
-            sortBy={column.getIsSorted() ?? 'hidden'}
             setSortBy={(value) => {
               if (value === 'hidden') {
                 column.getIsVisible() && column.toggleVisibility(false)
@@ -102,7 +101,7 @@ export const columns = [
       const { t } = useTranslation()
       return (
         <div className="">
-          <TaskSortPopover
+          <TableSortPopover
             children={
               <div className="hover:bg-surface-hover cursor-pointer py-1.5 px-2 rounded-lg flex items-center gap-x-1 w-fit ">
                 <span className="">{t('Last Name')}</span>
@@ -119,7 +118,6 @@ export const columns = [
                 </span>
               </div>
             }
-            sortBy={column.getIsSorted() ?? 'hidden'}
             setSortBy={(value) => {
               if (value === 'hidden') {
                 column.getIsVisible() && column.toggleVisibility(false)

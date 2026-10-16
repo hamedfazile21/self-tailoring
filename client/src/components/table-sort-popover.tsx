@@ -1,16 +1,20 @@
 import Popover from '#/components/popover'
-import type { SortDirection } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, EyeOff } from 'lucide-react'
-import React, { type FC } from 'react'
+import React from 'react'
+import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 
+/**
+ * The menu behind a sortable column header. It knows nothing about the table
+ * it is sorting — the header renders its own direction arrow, so the current
+ * direction never has to come in here.
+ */
 interface props {
   children: React.ReactNode
-  sortBy: false | SortDirection
   setSortBy: (sortBy: 'asc' | 'desc' | 'hidden') => void
 }
 
-const TaskSortPopover: FC<props> = ({ children, sortBy, setSortBy }) => {
+const TableSortPopover: FC<props> = ({ children, setSortBy }) => {
   const { t } = useTranslation()
   return (
     <Popover
@@ -53,4 +57,4 @@ const TaskSortPopover: FC<props> = ({ children, sortBy, setSortBy }) => {
   )
 }
 
-export default TaskSortPopover
+export default TableSortPopover
