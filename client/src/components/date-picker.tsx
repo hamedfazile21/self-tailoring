@@ -43,11 +43,23 @@ const calendarClassNames = {
   day: 'w-9 h-9 flex items-center justify-center p-0 text-sm',
   day_button:
     'size-9 rounded-full flex items-center justify-center text-foreground transition-colors duration-150 hover:bg-surface-hover',
-  today: 'font-semibold text-primary',
+  // These four land on the day *cell*, while `day_button` above is the button
+  // inside it — and that sets its own `text-foreground`, which beats a colour
+  // inherited from the parent. So anything recolouring a day has to reach the
+  // button with `[&>button]:`, the way `selected` already did.
+  //
+  // `today` marks itself with a ring rather than a colour, so that a day which
+  // is both today and selected does not come down to which `text-*` utility
+  // Tailwind happened to emit last.
+  today:
+    '[&>button]:font-semibold [&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-primary/40',
   selected:
     '[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary',
-  outside: 'text-muted/40',
-  disabled: 'text-muted/30 pointer-events-none',
+  outside: '[&>button]:text-muted/40',
+  // Struck through as well as dimmed: an unavailable date should read as
+  // crossed off, not merely as low contrast.
+  disabled:
+    'pointer-events-none [&>button]:text-muted/40 [&>button]:line-through',
   hidden: 'invisible',
 }
 
