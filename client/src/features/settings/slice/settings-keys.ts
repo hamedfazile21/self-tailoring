@@ -12,6 +12,9 @@ export const SETTING_KEYS = {
    * which the handful of customer columns fits inside comfortably.
    */
   customerTableView: 'customer-view-table',
+
+  /** The same, for the orders table. */
+  orderTableView: 'order-view-table',
 } as const
 
 export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS]
