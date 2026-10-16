@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { DayPicker } from '@daypicker/react'
 import type { DateRange } from '@daypicker/react'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -69,6 +69,20 @@ function DatePicker({
   const inputId = id ?? generatedId
   const [open, setOpen] = useState(false)
 
+  /**
+   * The month on show. Controlled rather than left to DayPicker, so every
+   * open starts on the selected date's month instead of today — and so
+   * browsing away and closing without picking does not leave the calendar
+   * somewhere else next time.
+   *
+   * `undefined` is DayPicker's own default, which is the current month.
+   */
+  const [month, setMonth] = useState<Date | undefined>(value)
+
+  useEffect(() => {
+    if (open) setMonth(value)
+  }, [open, value])
+
   const formattedValue = value
     ? new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
@@ -96,7 +110,7 @@ function DatePicker({
         onOpenChange={disabled ? undefined : setOpen}
         placement="bottom-start"
         showArrow={false}
-        closeOn='outside'
+        closeOn="outside"
         trigger={
           <button
             type="button"
@@ -116,6 +130,8 @@ function DatePicker({
         <DayPicker
           mode="single"
           selected={value}
+          month={month}
+          onMonthChange={setMonth}
           onSelect={(date) => {
             onChange(date)
             setOpen(false)
