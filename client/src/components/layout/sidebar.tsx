@@ -186,7 +186,7 @@ const Sidebar = () => {
     )
 
     return (
-      <div key={item.id} className="relative">
+      <div key={item.id} className="relative mt-1">
         {/* <Tooltip
           className={sidebarStatus !== 'vertical' ? '' : 'hidden'}
           content={t(item.title)}
@@ -353,7 +353,7 @@ const Sidebar = () => {
                 <div key={index} className="first:mt-0">
                   {sidebarStatus === 'vertical' && (
                     <div
-                      className={`${index !== 0 && 'mt-2 '} flex items-center gap-x-3 px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400`}
+                      className={`${index !== 0 && 'mt-2'} flex items-center gap-x-3 px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400`}
                     >
                       <div className="w-fit">{t(item.title)}</div>
                     </div>

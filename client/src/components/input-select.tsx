@@ -37,7 +37,7 @@ const glassClassNames: ClassNamesConfig<
   control: (state) =>
     `glass-solid flex rounded-md px-2 py-1 text-sm transition-all duration-200 cursor-pointer ${
       state.isFocused ? 'border-primary/50 ring-2 ring-primary/30' : ''
-    }`,
+    } ${state.isDisabled && "bg-surface-hover"}`,
   placeholder: () => 'text-muted',
   singleValue: () => 'text-foreground',
   input: () => 'text-foreground',
