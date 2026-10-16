@@ -24,8 +24,16 @@ export const Route = createFileRoute('/_layout/')({
       store.dispatch(fetchPendingOrders()),
       store.dispatch(fetchTopCustomers()),
     ]),
-  // The router preloads on intent with a stale time of 0, which would refetch
-  // on the click right after the hover. This keeps it to one round trip.
-  staleTime: 30_000,
+  /**
+   * No `staleTime`, so it defaults to 0 and every arrival reloads. The totals
+   * and the pending list go out of date the moment an order or a customer is
+   * saved, and this is the screen people come back to in order to see that.
+   *
+   * Preloading is off for the same reason rather than in spite of it: the
+   * router picks `staleTime` for a real navigation and `preloadStaleTime`
+   * only for the preload itself, so with a stale time of 0 the click refetches
+   * whatever the hover fetched — and these are four requests, not one.
+   */
+  preload: false,
   component: Dashboard,
 })
