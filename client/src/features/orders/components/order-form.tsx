@@ -1,4 +1,5 @@
 import CheckBox from '#/components/checkbox'
+import DatePicker from '#/components/date-picker'
 import Input from '#/components/input'
 import InputSelect from '#/components/input-select'
 import type { SelectOption } from '#/components/input-select'
@@ -54,13 +55,55 @@ const statusOptions: Array<SelectOption> = [
 const validateRequired = (value: string, message: string) =>
   value.trim() ? undefined : message
 
-/** `@IsDateString()` on the server; the column itself is a plain `date`. */
-const validateDate = (value: string, message: string) => {
+/**
+ * `YYYY-MM-DD` to a local `Date`, for the picker.
+ *
+ * Not `new Date(value)`: that reads the string as UTC midnight, which is the
+ * day before anywhere west of Greenwich — and these are plain `date` columns
+ * carrying no time or zone to begin with.
+ */
+const toDate = (value: string): Date | undefined => {
+  const [year, month, day] = value.split('-').map(Number)
+  if (!year || !month || !day) return undefined
+
+  const date = new Date(year, month - 1, day)
+  return Number.isNaN(date.getTime()) ? undefined : date
+}
+
+/**
+ * Back again, for `@IsDateString()`.
+ *
+ * Built from the local parts rather than `toISOString()`, which converts to
+ * UTC first: a local midnight in Kabul (UTC+4:30) would come back as the
+ * previous day's date.
+ */
+const toDateString = (date: Date | undefined): string => {
+  if (!date) return ''
+
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+/**
+ * The picker cannot offer a due date before the start, but it can be left
+ * behind by a start date moved afterwards — so the pair is checked here too.
+ *
+ * Compared as strings on purpose: `YYYY-MM-DD` sorts chronologically.
+ */
+const validateEndDate = ({
+  value,
+  fieldApi,
+}: {
+  value: string
+  fieldApi: { form: { getFieldValue: (field: 'start_date') => string } }
+}) => {
   const trimmed = value.trim()
-  if (!trimmed) return message
-  return Number.isNaN(new Date(trimmed).getTime())
-    ? 'Enter a valid date'
-    : undefined
+  if (!trimmed) return 'Due date is required'
+
+  const start = fieldApi.form.getFieldValue('start_date')
+  if (start && trimmed < start) return 'Cannot be before the start date'
+  return undefined
 }
 
 const validateQuantity = (value: string) => {
@@ -229,7 +272,7 @@ const OrderForm: FC<props> = ({ order, formId, onDone }) => {
         event.stopPropagation()
         handleSubmit()
       }}
-      className="flex flex-col gap-y-5 p-4"
+      className="flex flex-col gap-y-5 pt-5"
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field
@@ -330,17 +373,16 @@ const OrderForm: FC<props> = ({ order, formId, onDone }) => {
           name="start_date"
           validators={{
             onSubmit: ({ value }) =>
-              validateDate(value, 'Start date is required'),
+              validateRequired(value, 'Start date is required'),
           }}
           children={(field) => (
-            <Input
+            <DatePicker
               label={t('Start date')}
               required
-              type="date"
+              placeholder={t('Select date')}
               id={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(event) => field.handleChange(event.target.value)}
+              value={toDate(field.state.value)}
+              onChange={(date) => field.handleChange(toDateString(date))}
               error={
                 field.state.meta.isTouched
                   ? field.state.meta.errors.join(', ')
@@ -350,26 +392,30 @@ const OrderForm: FC<props> = ({ order, formId, onDone }) => {
           )}
         />
 
-        <Field
-          name="end_date"
-          validators={{
-            onSubmit: ({ value }) =>
-              validateDate(value, 'Due date is required'),
-          }}
-          children={(field) => (
-            <Input
-              label={t('Due date')}
-              required
-              type="date"
-              id={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(event) => field.handleChange(event.target.value)}
-              error={
-                field.state.meta.isTouched
-                  ? field.state.meta.errors.join(', ')
-                  : undefined
-              }
+        {/* `fromDate` keeps the calendar from offering a due date that falls
+            before the start — the server does not check the pair. */}
+        <Subscribe
+          selector={(state) => state.values.start_date}
+          children={(startDate) => (
+            <Field
+              name="end_date"
+              validators={{ onSubmit: validateEndDate }}
+              children={(field) => (
+                <DatePicker
+                  label={t('Due date')}
+                  required
+                  placeholder={t('Select date')}
+                  id={field.name}
+                  value={toDate(field.state.value)}
+                  fromDate={toDate(startDate)}
+                  onChange={(date) => field.handleChange(toDateString(date))}
+                  error={
+                    field.state.meta.isTouched
+                      ? field.state.meta.errors.join(', ')
+                      : undefined
+                  }
+                />
+              )}
             />
           )}
         />

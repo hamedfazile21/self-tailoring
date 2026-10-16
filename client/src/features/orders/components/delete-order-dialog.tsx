@@ -76,7 +76,7 @@ const DeleteOrderDialog: FC<props> = ({ open, setOpen, currentRow }) => {
       closeOnOutsideClick={false}
       showCloseButton={false}
       footer={
-        <div className="flex items-center gap-x-2 px-5">
+        <div className="flex items-center gap-x-2">
           <button
             type="button"
             className="btn btn-secondary"
@@ -103,7 +103,7 @@ const DeleteOrderDialog: FC<props> = ({ open, setOpen, currentRow }) => {
           event.preventDefault()
           void onDelete()
         }}
-        className="flex flex-col gap-y-5 p-5"
+        className="flex flex-col gap-y-5 pt-5"
       >
         <div className="flex items-start gap-x-3.5">
           <span

@@ -50,7 +50,7 @@ const CreateOrderDialog: FC<props> = ({ open, setOpen, currentRow }) => {
       size="3xl"
       closeOnOutsideClick={!isSaving}
       footer={
-        <div className="flex items-center gap-x-2 px-5">
+        <div className="flex items-center gap-x-2">
           <button
             type="button"
             className="btn btn-secondary"

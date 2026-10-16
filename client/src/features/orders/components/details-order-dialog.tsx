@@ -103,10 +103,10 @@ const DetailsOrderDialog: FC<props> = ({ currentRow, open, setOpen }) => {
       open={open}
       onClose={onCloseDialog}
       title={t('Order details')}
-      position="center"
-      size="xl"
+      position="top"
+      size="3xl"
       footer={
-        <div className="flex items-center gap-x-2 px-5">
+        <div className="flex items-center gap-x-2">
           <button
             type="button"
             className="btn btn-secondary"
@@ -125,7 +125,7 @@ const DetailsOrderDialog: FC<props> = ({ currentRow, open, setOpen }) => {
         </div>
       }
     >
-      <div className="px-5 pt-3 pb-2">
+      <div className="pt-3 pb-2">
         {order === null ? (
           status === 'failed' ? (
             <div className="flex flex-col items-center justify-center gap-y-3 py-12 text-center">
