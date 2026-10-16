@@ -45,3 +45,9 @@ export const selectOrdersLoading = (state: RootState) =>
 export const selectOrdersEmpty = (state: RootState) =>
   state.orders.list.status === 'succeeded' &&
   state.orders.list.data.length === 0
+
+export const selectOrderCustomerOptions = (state: RootState) =>
+  state.orders.customerOptions.data
+
+export const selectOrderCustomerOptionsLoading = (state: RootState) =>
+  state.orders.customerOptions.status === 'loading'

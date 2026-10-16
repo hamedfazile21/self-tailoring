@@ -1,11 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { PageMeta } from '#/lib/api'
-import type { Order, OrdersQuery, Panel, RequestStatus } from './orders-types'
+import type {
+  Order,
+  OrderCustomerOption,
+  OrdersQuery,
+  Panel,
+  RequestStatus,
+} from './orders-types'
 import {
   createOrder,
   deleteOrders,
   fetchOrder,
+  fetchOrderCustomerOptions,
   fetchOrders,
   markOrderDone,
   updateOrder,
@@ -26,6 +33,8 @@ interface OrdersState {
   current: Panel<Order | null>
   /** Query the next `fetchOrders` uses unless the call overrides it. */
   filters: OrdersQuery
+  /** Customers and their measurements, for the order form's two pickers. */
+  customerOptions: Panel<Array<OrderCustomerOption>>
   /** Shared by create / update / done / delete — one runs at a time in the UI. */
   mutation: { status: RequestStatus; error: string | null }
   /** Checkbox selection, fed straight to the bulk-delete endpoint. */
@@ -52,6 +61,7 @@ const initialState: OrdersState = {
   },
   current: { data: null, status: 'idle', error: null },
   filters: { page: 1, limit: ORDERS_PAGE_SIZE, search: '' },
+  customerOptions: { data: [], status: 'idle', error: null },
   mutation: { status: 'idle', error: null },
   selectedIds: [],
 }
@@ -140,6 +150,20 @@ const ordersSlice = createSlice({
         state.current.status = 'failed'
         state.current.data = null
         state.current.error = action.payload ?? 'Could not load the order.'
+      })
+
+      .addCase(fetchOrderCustomerOptions.pending, (state) => {
+        state.customerOptions.status = 'loading'
+        state.customerOptions.error = null
+      })
+      .addCase(fetchOrderCustomerOptions.fulfilled, (state, action) => {
+        state.customerOptions.status = 'succeeded'
+        state.customerOptions.data = action.payload
+      })
+      .addCase(fetchOrderCustomerOptions.rejected, (state, action) => {
+        state.customerOptions.status = 'failed'
+        state.customerOptions.error =
+          action.payload ?? 'Could not load the customers.'
       })
 
       .addCase(createOrder.pending, (state) => {

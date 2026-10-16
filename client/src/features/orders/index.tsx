@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import OrdersTable from './components/orders-table'
+import OrderDialog from './components/orders-dialog'
 import { useOrder } from './components/order-provider'
 
 const Orders = () => {
@@ -32,6 +33,7 @@ const Orders = () => {
       <div className="card w-full overflow-hidden p-0!">
         <OrdersTable />
       </div>
+      <OrderDialog />
     </div>
   )
 }

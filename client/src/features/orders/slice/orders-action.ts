@@ -12,6 +12,7 @@ import type {
   CreateOrderPayload,
   DeleteOrdersResult,
   Order,
+  OrderCustomerOption,
   OrdersQuery,
   UpdateOrderArgs,
 } from './orders-types'
@@ -126,6 +127,33 @@ export const deleteOrders = createAsyncThunk<
     )
 
     return { ids, result }
+  } catch (error) {
+    return rejectWithValue(normalizeError(error).message)
+  }
+})
+
+/**
+ * Every customer the order form can pick from, with their measurements.
+ *
+ * Its own slot rather than the customers slice: that one backs the customers
+ * table, and writing a 100-row page into it would move the table out from
+ * under whoever is reading it.
+ *
+ * `limit` is the server's cap. Past that this needs a search-as-you-type
+ * picker rather than one list.
+ */
+export const fetchOrderCustomerOptions = createAsyncThunk<
+  Array<OrderCustomerOption>,
+  void,
+  { state: RootState; rejectValue: string }
+>('orders/customerOptions', async (_args, { rejectWithValue }) => {
+  try {
+    const page = await api.get<Paginated<OrderCustomerOption>>('/customers', {
+      params: { page: 1, limit: 100 },
+      silent: true,
+    })
+
+    return page.data
   } catch (error) {
     return rejectWithValue(normalizeError(error).message)
   }

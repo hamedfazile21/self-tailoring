@@ -122,3 +122,21 @@ export interface Panel<T> {
   status: RequestStatus
   error: string | null
 }
+
+/**
+ * A customer and the measurements they own, which is what the order form's
+ * two pickers need: the service rejects a measurement that belongs to someone
+ * other than the chosen customer, so the second picker has to be driven by
+ * the first.
+ *
+ * Read from `GET /customers`, which eager-loads the relation — so one request
+ * fills both. Declared here rather than borrowed from the customers feature
+ * because only the fields the pickers show are guaranteed by that call.
+ */
+export interface OrderCustomerOption {
+  id: number
+  name: string
+  last_name?: string | null
+  phone: string
+  measurements: Array<OrderMeasurement> | null
+}
