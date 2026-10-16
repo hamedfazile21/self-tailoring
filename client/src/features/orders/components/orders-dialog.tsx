@@ -1,5 +1,6 @@
 import CreateOrderDialog from './create-order-dialog'
 import DeleteOrderDialog from './delete-order-dialog'
+import DetailsOrderDialog from './details-order-dialog'
 import { useOrder } from './order-provider'
 
 const OrderDialog = () => {
@@ -27,6 +28,13 @@ const OrderDialog = () => {
         open={open === 'delete-order'}
         setOpen={setOpen}
         currentRow={currentRow}
+      />
+
+      <DetailsOrderDialog
+        key={'details-order-dialog'}
+        open={open === 'details-order'}
+        setOpen={setOpen}
+        currentRow={currentRow?.id ?? null}
       />
     </>
   )
