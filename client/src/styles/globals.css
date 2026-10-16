@@ -309,6 +309,12 @@ button {
     focus:border-primary/50 focus:ring-2 focus:ring-primary/30;
 }
 
+/* Disabled applies to anything wearing `.input` — a real input, or the
+   date picker's trigger button, which is a <button class="input" disabled>. */
+.input:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
 /* No spinner on number inputs: the step buttons crowd a field this size, and
    they are not how anyone enters a measurement or a price. */
 .input[type='number'] {
