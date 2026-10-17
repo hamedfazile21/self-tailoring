@@ -68,7 +68,7 @@ const DateCell = ({ value }: { value: string }) => {
   )
 }
 
-const PriceCell = ({ value }: { value: string }) => {
+const PriceCell = ({ value }: { value: string | number }) => {
   const { i18n } = useTranslation()
   // The column is a `decimal`, so this arrives as a string.
   const amount = Number(value)
@@ -208,6 +208,14 @@ export const columns = [
     header: () => <HeaderLabel label="Price" />,
     cell: (info) => <PriceCell value={info.getValue()} />,
     footer: (info) => info.column.id,
+  }),
+
+  columnHelper.accessor((row) => row.quantity * Number(row.price), {
+    id: 'Total',
+    header: ({}) => (
+      <span>Total</span>
+    ),
+    cell: (info) => <PriceCell value={info.getValue()} />,
   }),
 
   columnHelper.accessor('status', {
