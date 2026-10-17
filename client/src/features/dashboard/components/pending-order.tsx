@@ -123,7 +123,7 @@ const PendingOrders = () => {
             >
               <div className="min-w-0">
                 <Link
-                  to={"."}
+                  to={"/orders"}
                   className="truncate text-sm font-medium text-foreground hover:underline hover:text-info hover:cursor-pointer"
                 >
                   {customerName(order)}
