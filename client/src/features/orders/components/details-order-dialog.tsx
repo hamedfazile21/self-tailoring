@@ -220,6 +220,11 @@ const DetailsOrderDialog: FC<props> = ({ currentRow, open, setOpen }) => {
                       {formatPrice(order.price)}
                     </span>
                   </Row>
+                  <Row label={t('Total Price')}>
+                    <span className="tabular-nums" dir="ltr">
+                      {order.quantity * Number(order.price)}
+                    </span>
+                  </Row>
                 </dl>
               </Tabs.Content>
 
