@@ -1,7 +1,7 @@
 import Dialog from '#/components/dialog'
 import Tabs from '#/components/tab/tabs'
 import { useAppDispatch, useAppSelector } from '#/hooks/redux'
-import { Phone } from 'lucide-react'
+import { Download, Phone, Printer } from 'lucide-react'
 import { useEffect } from 'react'
 import type { FC, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +11,7 @@ import { clearCurrent } from '../slice/orders-slice'
 import type { OrderMeasurement } from '../slice/orders-types'
 import { StatusBadge, orderCode } from './orders-column'
 import type { OrderDialogType } from './order-provider'
+import { useOrderInvoice } from '../invoice/use-order-invoice'
 
 interface props {
   open: boolean
@@ -52,6 +53,7 @@ const DetailsOrderDialog: FC<props> = ({ currentRow, open, setOpen }) => {
 
   const orderId = currentRow ?? null
   const { data, status, error } = useAppSelector(selectCurrentOrder)
+  const invoice = useOrderInvoice()
 
   useEffect(() => {
     if (!open || orderId === null) return
@@ -106,10 +108,28 @@ const DetailsOrderDialog: FC<props> = ({ currentRow, open, setOpen }) => {
       position="top"
       size="3xl"
       footer={
-        <div className="flex items-center gap-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-secondary-outline"
+            onClick={() => order && void invoice.print(order)}
+            disabled={order === null || invoice.pending !== null}
+          >
+            <Printer size={16} />
+            {t('Print')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary-outline"
+            onClick={() => order && void invoice.download(order)}
+            disabled={order === null || invoice.pending !== null}
+          >
+            <Download size={16} />
+            {invoice.pending === 'download' ? t('Preparing…') : t('Download')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary ms-auto"
             onClick={onCloseDialog}
           >
             {t('Close')}

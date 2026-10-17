@@ -1,9 +1,18 @@
 import Popover from '#/components/popover'
 import { useAppDispatch, useAppSelector } from '#/hooks/redux'
-import { CheckCircle2, Ellipsis, Eye, SquarePen, Trash2 } from 'lucide-react'
+import {
+  CheckCircle2,
+  Download,
+  Ellipsis,
+  Eye,
+  Printer,
+  SquarePen,
+  Trash2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useOrder } from './order-provider'
+import { useOrderInvoice } from '../invoice/use-order-invoice'
 import { markOrderDone } from '../slice/orders-action'
 import { selectOrdersMutating } from '../slice/orders-selectors'
 import type { FC } from 'react'
@@ -27,6 +36,7 @@ const ActionColumn: FC<props> = ({ row }) => {
   const { setOpen, setCurrentRow } = useOrder()
 
   const isMutating = useAppSelector(selectOrdersMutating)
+  const invoice = useOrderInvoice()
   const order = row.original
 
   const onMarkDone = async () => {
@@ -75,6 +85,28 @@ const ActionColumn: FC<props> = ({ row }) => {
           >
             <SquarePen size={16} />
             {t('Edit')}
+          </button>
+
+          {/* The list rows carry the customer and measurement too, so the
+              invoice needs no extra request. */}
+          <button
+            type="button"
+            disabled={invoice.pending !== null}
+            className="flex items-center gap-x-2 rounded-md px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => void invoice.print(order)}
+          >
+            <Printer size={16} />
+            {t('Print invoice')}
+          </button>
+
+          <button
+            type="button"
+            disabled={invoice.pending !== null}
+            className="flex items-center gap-x-2 rounded-md px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => void invoice.download(order)}
+          >
+            <Download size={16} />
+            {t('Download invoice')}
           </button>
 
           {/* An order that is already done has nowhere to go from here. */}
